@@ -78,3 +78,9 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Distribution renamed to releases/CookieKeep-v1.1.1-chromium.zip, with version read from manifest. Build now verifies its complete entry list, root manifest version and SHA-256 hashes against runtime files.
 - No LICENSE file is currently present. No license selected.
 - Normal Git SSH remote lookup failed with Host key verification failed. No host-key check was bypassed, no private key accessed directly and no push attempted. Remote history could not be inspected. gh is not installed, so GitHub metadata was not changed.
+
+## Popup version indicator
+
+- All 70 tests passed, zero failed. The popup integration test uses runtime versions 9.8.7 and 2.3.4.5, verifying dynamic display and preserving snapshot and dashboard actions.
+- Build passed; regenerated versioned Chromium ZIP with 21 verified runtime files and manifest at root.
+- Compared the current popup against the preceding commit in headless Edge with synthetic browser APIs. Body, header, brand, right-hand label, status, hostname, stats, controls and card bounds are identical. Version is 11 px muted text aligned below the brand within existing header spacing; no page errors.

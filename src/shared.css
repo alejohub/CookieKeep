@@ -12,3 +12,7 @@
 #dialog-body>p,#dialog-body>h3,#dialog-body>.card{margin:0}
 #dialog-body>a.link{align-self:flex-start;font-size:14px;line-height:1.6}
 #dialog-actions{margin-top:24px;gap:12px}
+
+/* Place version within the existing header spacing, preserving popup geometry. */
+.popup .popup-brand{position:relative}
+.popup .popup-version{position:absolute;left:0;top:calc(100% + 2px);font-size:11px;line-height:14px;white-space:nowrap}

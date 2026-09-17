@@ -29,11 +29,11 @@ node scripts/build.mjs
 
 `npm test` and `npm run build` are equivalent if npm is available. The build regenerates transparent PNG icons at 16/32/48/128 pixels, checks JavaScript syntax, relative imports, HTML resources, manifest entries and permissions. On Windows it also creates the versioned Chromium ZIP in `releases/`, containing only `manifest.json`, `src/` and `icons/`. The source tree remains directly loadable. On other platforms, validation and icon generation run; create the archive with `scripts/package.ps1` on Windows. The ZIP is intentionally tracked in Git alongside the complete source.
 
-The original 1.1.1 baseline passed 59 tests. The current suite passes 69 tests, including dashboard pagination integration coverage for empty inventories, page boundaries, inventories over 1,000 domains and all four sorting modes. Tests use synthetic data and simulated browser APIs; they do not access a real browser profile.
+The original 1.1.1 baseline passed 59 tests. The current suite passes 70 tests, including dashboard pagination integration coverage for empty inventories, page boundaries, inventories over 1,000 domains and all four sorting modes. Tests use synthetic data and simulated browser APIs; they do not access a real browser profile.
 
 ## Use
 
-The popup displays the current HTTP/HTTPS hostname, protection state, applicable cookies across accessible stores, estimated size and next cleanup. Protection toggles with one click. Green badge means explicitly whitelisted; red means cookies without explicit hostname protection; gray means no cookies. Internal browser pages have an empty badge.
+The popup shows the extension version below its name, read dynamically from the runtime manifest. It displays the current HTTP/HTTPS hostname, protection state, applicable cookies across accessible stores, estimated size and next cleanup. Protection toggles with one click. Green badge means explicitly whitelisted; red means cookies without explicit hostname protection; gray means no cookies. Internal browser pages have an empty badge.
 
 The dashboard displays total cookies, domains, estimated size, protected sites and removable cookies. Search and filter rows, sort by count, size, domain or visits, inspect metadata, protect sites, or delete unprotected cookies. Cookie domains are normalized without their leading dot. Whitelisted hostnames appear even when they have no cookies. Conserved cookies inherited from another protected site are distinguished from explicit protection.
 

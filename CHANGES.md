@@ -63,3 +63,9 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Verified dashboard, modal and popup layout in headless Edge using synthetic browser APIs; retained existing transparent cookie icons and dynamic badge.
 - Added requested tagline and project/license status to the English README.
 - Renamed the versioned distribution to CookieKeep-v1.1.1-chromium.zip and added archive entry/version/hash verification to packaging.
+
+### Popup version indicator
+
+- Added a small muted version below the CookieKeep brand using chrome.runtime.getManifest().version; no fixed version string in the UI.
+- Retained existing popup/header geometry and the right-hand local-browser label placement.
+- Added coverage using two alternative runtime versions; all 70 tests pass. Build and Chromium ZIP verification pass.
