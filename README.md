@@ -6,15 +6,15 @@ CookieKeep is a Chrome and Edge extension that lets users protect the cookies th
 
 ## Project status and license
 
-Version **1.1.2** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.2-chromium.zip`.
+Version **1.1.3** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.3-chromium.zip`.
 
-All 112 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
+All 121 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
 No LICENSE file is currently present.
 
 ## Install
 
-Download and extract `releases/CookieKeep-v1.1.2-chromium.zip`. The manifest is at the archive root.
+Download and extract `releases/CookieKeep-v1.1.3-chromium.zip`. The manifest is at the archive root.
 
 **Chrome:** open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder containing `manifest.json`.
 
@@ -58,7 +58,7 @@ The collision defense considers the effective remove URL, domain/hostOnly, path 
 
 `DELETE_CONCURRENCY = 8` bounds batches; there is no `Promise.all` over the full inventory. The old pipeline performed global inventories and a complete policy calculation for every cookie. The new pipeline enumerates globally once, then uses targeted name/store queries covering all possible partitions. It reads protection once per batch under the same queue used by protection writes. A protection request is saved after already-started batch operations finish and before the next batch begins; it cannot undo an in-flight removal.
 
-Progress is aggregated in the worker, published at batch boundaries at most every 200 ms plus start/end, and checkpointed in `storage.session`. UI polling is 250 ms while active and 1 second otherwise, independent of deletion calls. Closing/reopening a popup retrieves current state. Cancel stops new removal starts, lets calls already in flight finish, and stores a partial aggregate summary. A restarted worker marks an interrupted operation failed and requires a new preview; it does not resume a stale deletion list. Cleanup history is written once at the end, at most 30 records. Runs have a three-minute limit.
+Progress is aggregated in the worker, published at batch boundaries at most every 200 ms plus start/end, and checkpointed in `storage.session`. UI polling is 250 ms only while active, independent of deletion calls. Terminal states stop polling; session checkpoint events detect subsequent jobs. Page closure removes the listener and timer. Closing/reopening a popup retrieves current state. Cancel stops new removal starts, lets calls already in flight finish, and stores a partial aggregate summary. A restarted worker marks an interrupted operation failed and requires a new preview; it does not resume a stale deletion list. Cleanup history is written once at the end, at most 30 records. Runs have a three-minute limit.
 
 Synthetic benchmark (`node scripts/benchmark.mjs 1000 1`): 1,000 cookies and 1 ms requested API latency measured **108,044.68 ms** for the sequential global-inventory pipeline and **11,714.51 ms** for bounded targeted deletion. Global getAll calls: 4,002 versus 2; returned cookie rows: 1,001,000 versus 3,000; storage reads: 1,002 versus 127; concurrent removes: 1 versus 8. Timer scheduling and synthetic data affect these measurements. They do not predict real-profile throughput or replace measuring the reported 3,500-cookie workload.
 
@@ -100,3 +100,5 @@ Source: `src/background/worker.js` coordinates APIs, jobs and alarms; `src/lib/`
 ## Limits
 
 Chrome 130+ and equivalent Edge APIs are required. Unsupported partition enumeration blocks deletion. Only accessible profile stores are handled; incognito requires explicit enablement and separate acceptance. Browser sleep can delay alarms. CookieKeep does not clear localStorage, IndexedDB or cache, and cannot stop sites recreating cookies or the browser discarding session cookies. Unexpected browser/site changes may affect measured aggregate counts. Safe skipping can preserve extra cookies when selectors overlap or become ambiguous; generate a fresh preview or wait for the next schedule.
+
+Cleanup progress is shown only while running or cancelling. Terminal results remain in cleanup history; the popup and dashboard automatically hide the progress block with no reserved space.

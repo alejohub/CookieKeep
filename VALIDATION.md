@@ -96,3 +96,11 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Version from manifest/package is 1.1.2. Source and new Chromium ZIP are versioned; the published 1.1.1 ZIP and external audit remain unchanged.
 - BROWSER_VALIDATION.md lists remaining interactive Chrome/Edge acceptance: native optional-permission prompts, detailed SameSite/iframe CHIPS/stores, alarms and forced worker termination. Interrupted-job recovery is covered by unit tests, not claimed as a real forced-termination test.
 - SECURITY_REVIEW_1.1.2.md records selector sources, identity limitations, measurements and queue semantics. No cookie values in tokens, local/session aggregates, logs or UI.
+
+## CookieKeep 1.1.3
+
+- 121 tests passed, zero failed; includes six states, open-page completion, terminal reload, duplicate-cleanup prevention and timer/listener disposal.
+- Build passed: 36 validated files, 23 runtime ZIP entries, root manifest version 1.1.3 and matching source hashes.
+- Real Edge extension smoke passed using a disposable profile and synthetic cookies. Completion hides progress in both open pages with zero layout height; reload remains hidden. Cancellation still reports a partial result.
+- Archive: releases/CookieKeep-v1.1.3-chromium.zip, 33168 bytes.
+- SHA-256: D6B58FD978576C907EF74DB36E8C7D73D095ADAF64A60C3C32CEB6865006A1E6

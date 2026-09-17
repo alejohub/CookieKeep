@@ -35,8 +35,19 @@ try{
  let active;for(let attempt=0;attempt<20;attempt++){active=await send({type:'status'});if(active.state==='running')break;}assert.equal(active.state,'running');
  await page.close();const reopened=await context.newPage();await reopened.goto(`chrome-extension://${id}/src/popup/index.html`);await reopened.waitForFunction(()=>document.querySelector('#cleanup-progress-label').textContent==='Eliminando cookies…');assert.ok(await reopened.locator('#delete').isDisabled());
  const recovered=await reopened.evaluate(()=>chrome.runtime.sendMessage({type:'status'}));assert.equal(recovered.data.state,'running');
- await reopened.click('#cancel-cleanup');await reopened.waitForFunction(()=>document.querySelector('#cleanup-progress-label').textContent.includes('resumen parcial'),{},{timeout:10000});
+ await reopened.click('#cancel-cleanup');await reopened.waitForFunction(()=>document.querySelector('#cleanup-progress').hidden && document.querySelector('#notice').textContent.includes('resumen parcial'),{},{timeout:10000});
+ await reopened.reload();assert.ok(await reopened.locator('#cleanup-progress').isHidden());
+ const dashboard=await context.newPage();await dashboard.goto(`chrome-extension://${id}/src/options/index.html`);assert.ok(await dashboard.locator('#cleanup-progress').isHidden());await dashboard.reload();assert.ok(await dashboard.locator('#cleanup-progress').isHidden());
  const partial=await reopened.evaluate(()=>chrome.runtime.sendMessage({type:'status'}));assert.equal(partial.data.cancelled,true);assert.ok(partial.data.deleted<partial.data.total);
+ const finishPreview=await dashboard.evaluate(()=>chrome.runtime.sendMessage({type:'preview'}));
+ await dashboard.evaluate(token=>{chrome.runtime.sendMessage({type:'clean',host:null,token}).catch(()=>{});},finishPreview.data.token);
+ await dashboard.waitForFunction(()=>!document.querySelector('#cleanup-progress').hidden);
+ await reopened.waitForFunction(()=>!document.querySelector('#cleanup-progress').hidden);
+ await dashboard.waitForFunction(()=>document.querySelector('#cleanup-progress').hidden,{},{timeout:30000});
+ await reopened.waitForFunction(()=>document.querySelector('#cleanup-progress').hidden,{},{timeout:30000});
+ for(const view of [dashboard,reopened])assert.equal(await view.locator('#cleanup-progress').evaluate(el=>el.getBoundingClientRect().height),0);
+ await reopened.reload();await reopened.waitForFunction(()=>document.querySelector('#version').textContent.startsWith('v'));assert.ok(await reopened.locator('#cleanup-progress').isHidden());
+ await dashboard.reload();assert.ok(await dashboard.locator('#cleanup-progress').isHidden());
  const manifest=JSON.parse(await readFile('manifest.json','utf8'));assert.equal(await reopened.locator('#version').textContent(),`v${manifest.version}`);assert.deepEqual(errors,[]);
- console.log(JSON.stringify({browser:'Real headless Edge extension',version:manifest.version,profile:'disposable temporary profile',checks:['unrelated name collision','manual A+B intersection','Domain parent collateral','new same-name path collateral','CHIPS protection/removal','progress after closing initiating UI','real cancellation partial result','native CSP/manifest loading'],passed:true}));
+ console.log(JSON.stringify({browser:'Real headless Edge extension',version:manifest.version,profile:'disposable temporary profile',checks:['unrelated name collision','manual A+B intersection','Domain parent collateral','new same-name path collateral','CHIPS protection/removal','progress after closing initiating UI','real cancellation partial result','completion hides progress in both open pages with zero layout height','terminal reload stays hidden','native CSP/manifest loading'],passed:true}));
 }finally{await context?.close();}

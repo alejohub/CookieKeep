@@ -79,3 +79,11 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Hardened default/style/image/base/form/frame CSP directives; corrected the scope of privacy/CSP claims.
 - Added synthetic regressions, benchmark, real disposable-profile Edge smoke and reproducible manual Chrome/Edge guide. 112 tests passed, zero failed.
 - Version 1.1.2 and versioned Chromium ZIP; 1.1.1 published archive retained unchanged. No license selected.
+
+## 1.1.3 — cleanup progress completion state
+
+- Show the shared popup/dashboard progress block only for running or cancelling jobs.
+- Hide terminal progress immediately with no reserved layout space; preserve results in history and cancellation/error notices.
+- Stop polling at terminal states. Session checkpoints wake the UI for subsequent jobs; pagehide removes the listener and timer.
+- Added state, completion, reload and timer/listener regressions: 121 tests passed, zero failed.
+- Real disposable-profile Edge validation confirms completion hides progress in both open pages with zero layout height, and terminal reload remains hidden.

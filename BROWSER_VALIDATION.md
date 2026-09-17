@@ -1,4 +1,4 @@
-# Disposable-browser acceptance for CookieKeep 1.1.2
+# Disposable-browser acceptance for CookieKeep 1.1.3
 
 Never use a real browsing profile for these destructive tests. Create a new Chrome/Edge profile with no sign-in/sync, password manager, personal tabs, imported history or other extensions. Load this repository unpacked. Delete that disposable profile after testing using the browser's profile controls.
 
@@ -94,3 +94,7 @@ Closing DevTools before the alarm allows normal worker lifecycle behavior; inspe
 Open popup, dashboard and detailed preview in both browsers. Packaged scripts/styles/icons and internal preview navigation must work. Inspect console/extension errors for CSP violations. The hardened CSP is a subresource/connect/form/frame/base restriction, not a guarantee against every browser-API or navigation network action.
 
 Record browser version, OS, fixture sizes, aggregate result, elapsed time, observed concurrency/progress and screenshots without personal data. Mark each manual case passed/failed/not run. Do not report unrun cases as passed. Mock throughput is not real-browser throughput.
+
+## 1.1.3 progress completion regression
+
+The automated smoke also verifies completion with popup and dashboard open: both progress containers become hidden and have zero layout height. Reloading either view after completion keeps progress hidden. Cancellation keeps the partial result in the notice while hiding the progress block. Only running/cancelling states show progress; terminal states stop UI polling.
