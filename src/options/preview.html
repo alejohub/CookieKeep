@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CookieKeep · Detalle de la vista previa</title>
+  <link rel="stylesheet" href="../shared.css">
+</head>
+<body>
+  <main class="dashboard">
+    <header>
+      <div><div class="brand">Cookie<span>Keep</span></div><h1>Qué se eliminaría.</h1></div>
+      <button id="refresh" class="secondary">Recalcular vista previa</button>
+    </header>
+    <p>Vista previa dinámica de las cookies y la whitelist actuales. No programa ni ejecuta una limpieza.</p>
+    <p id="notice" class="notice" role="status" aria-live="polite"></p>
+    <section class="card">
+      <h2>Resumen</h2><p id="summary">Calculando…</p><p id="calculated" class="muted"></p>
+    </section>
+    <section class="card">
+      <h2>Sitios que se eliminarían</h2>
+      <div class="table-wrap"><table><thead><tr><th>Dominio</th><th>Cookies</th><th>Tamaño aproximado</th><th>Acciones</th></tr></thead><tbody id="rows"></tbody></table></div>
+      <p id="empty" hidden>No hay cookies que se eliminarían.</p>
+    </section>
+  </main>
+  <script type="module" src="preview.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {DEFAULT} from '../src/lib/storage.js';
+const events=()=>({listeners:[],addListener(fn){this.listeners.push(fn);}});
+let state=structuredClone(DEFAULT),alarm,listener;
+const c={name:'session',value:'NEVER_EXPOSE',domain:'.example.com',hostOnly:false,path:'/',secure:true,httpOnly:true,sameSite:'lax',session:true,storeId:'0'};
+const badges=[];
+globalThis.chrome={runtime:{id:'test',getURL:path=>`chrome-extension://test/${path}`,onMessage:{addListener(fn){listener=fn;}},onStartup:events(),onInstalled:events()},storage:{local:{get:async()=>({state:structuredClone(state)}),set:async data=>{state=structuredClone(data.state);}}},cookies:{getAllCookieStores:async()=>[{id:'0'}],getAll:async()=>[c],onChanged:events()},alarms:{get:async()=>alarm,clear:async()=>{alarm=undefined;return true;},create:async(name,data)=>{alarm={name,...data,scheduledTime:data.when};},onAlarm:events()},tabs:{query:async()=>[{id:1,url:'https://www.example.com/a'},{id:2,url:'chrome://settings'}],onActivated:events(),onUpdated:events()},action:{setBadgeBackgroundColor:async d=>badges.push(d),setBadgeText:async()=>{},setTitle:async()=>{}}};
+await import('../src/background/worker.js');
+const send=message=>new Promise(resolve=>listener(message,{id:'test',url:'chrome-extension://test/src/options/index.html'},resolve));
+test('workflow background: snapshot, un clic, preview, activación y reinicio de alarma',async()=>{
+  let response=await send({type:'snapshot'});assert.equal(response.ok,true);assert.equal(response.data.siteCount,1);assert.equal(response.data.host,'www.example.com');assert.ok(!JSON.stringify(response).includes('NEVER_EXPOSE'));
+  response=await send({type:'settings',interval:1440});assert.equal(response.ok,false);assert.equal(state.interval,0);
+  assert.equal((await send({type:'toggle',host:'www.example.com'})).ok,true);assert.deepEqual(state.whitelist,['www.example.com']);assert.ok(badges.some(b=>b.color==='#16805d'));
+  response=await send({type:'details',host:'example.com'});assert.equal(response.data[0].value,undefined);assert.equal(response.data[0].name,'session');
+  response=await send({type:'preview'});assert.equal(response.data.remove,0);assert.equal(response.data.keep,1);
+  assert.equal((await send({type:'settings',interval:4320,token:response.data.token})).ok,true);assert.equal(state.interval,4320);assert.equal(alarm.periodInMinutes,4320);
+  const next=state.nextRun;alarm=undefined;await send({type:'snapshot'});assert.equal(alarm.periodInMinutes,4320);assert.equal(alarm.scheduledTime,next);
+  assert.equal((await send({type:'settings',interval:0})).ok,true);assert.equal(alarm,undefined);
+  assert.equal((await send({type:'toggle',host:'www.example.com'})).ok,true);assert.deepEqual(state.whitelist,[]);
+});
+test('mensajes ajenos a las páginas de extensión se rechazan',()=>{assert.equal(listener({type:'toggle',host:'a.test'},{id:'foreign',url:'https://a.test'},()=>{}),false);assert.equal(listener({type:'toggle',host:'a.test'},{id:'test',url:'https://a.test'},()=>{}),false);});
