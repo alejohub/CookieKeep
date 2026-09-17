@@ -55,3 +55,11 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Added pagination integration coverage: 60 passing tests.
 - Rewrote README in English and added ignore rules for local files and credential formats.
 - Added Windows ZIP packaging to build; the release archive is versioned alongside complete source.
+
+### Additional acceptance coverage
+
+- Expanded pagination tests to include more than 1,000 domains, all size options, protected/unprotected filters and visit ranking before pagination.
+- Updated row-range wording, retained page controls disabled for All, and guarded page bounds.
+- Verified dashboard, modal and popup layout in headless Edge using synthetic browser APIs; retained existing transparent cookie icons and dynamic badge.
+- Added requested tagline and project/license status to the English README.
+- Renamed the versioned distribution to CookieKeep-v1.1.1-chromium.zip and added archive entry/version/hash verification to packaging.

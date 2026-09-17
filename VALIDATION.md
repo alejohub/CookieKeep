@@ -66,3 +66,15 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Corrected dashboard section and activation-modal spacing. Real Chrome/Edge visual acceptance remains pending.
 - README rewritten in English. Ignore rules exclude dependency folders, environment files, private-key formats and editor files; the release ZIP remains tracked.
 - Reviewed all project files and credential/personal-data search matches: synthetic cookie values and visits in tests, API field names and runtime preview tokens. No real cookies, browsing-history dumps, private keys, credentials or personal datasets found in project files.
+
+## Additional acceptance criteria (CookieKeep 1.1.1)
+
+- All 69 tests passed, zero failed. Pagination integration covers inventories of 0, 12, 50, 51, 107, 205 and 1,072 rows at 50/100/200/All, bidirectional navigation, boundaries, search and protected/unprotected filters. Global count/size/A-Z/local-visit sorting is verified before slicing, including visits combined with search.
+- Existing property tests, protection changes during cleanup and a simulated three-day alarm confirm current protection is consulted. A site protected after scheduling, and cookies created afterward, are retained. Preview results are recalculated; no frozen deletion list is stored.
+- Headless Edge with a temporary profile and synthetic chrome APIs: dashboard metrics-to-automatic and automatic-to-sites gaps both measured exactly 24 px; modal link-to-actions measured 24 px; modal has two body elements (aggregate summary and separate-view link). No page errors.
+- Popup measured 360 px wide, 20 px bottom gap, 20 px lateral padding and zero min-height. Empty notice is hidden; no main/wrapper imposes additional height. Popup and modal screenshots inspected.
+- Icons visually inspected at 16/32/128 px; unchanged transparent cookie artwork. PNG tests cover 16/32/48/128 transparency and absence of a green background. Badge text is still set separately via chrome.action.setBadgeText.
+- Source privacy audit confirms no network/analytics code. Whitelist and cleanup aggregates are local; browsing history ranking is read on demand and cached only in memory. Test cookie values/history are synthetic fixtures, never real profile data.
+- Distribution renamed to releases/CookieKeep-v1.1.1-chromium.zip, with version read from manifest. Build now verifies its complete entry list, root manifest version and SHA-256 hashes against runtime files.
+- No LICENSE file is currently present. No license selected.
+- Normal Git SSH remote lookup failed with Host key verification failed. No host-key check was bypassed, no private key accessed directly and no push attempted. Remote history could not be inspected. gh is not installed, so GitHub metadata was not changed.

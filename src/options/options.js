@@ -55,10 +55,10 @@ function renderRows() {
   const size = Number($('page-size').value) || 50;
   const all = $('page-size').value === 'all';
   const pages = all ? 1 : Math.max(1, Math.ceil(rows.length / size));
-  page = Math.min(page, pages);
+  page = Math.max(1, Math.min(page, pages));
   const start = all ? 0 : (page - 1) * size;
   const visible = all ? rows : rows.slice(start, start + size);
-  $('page-status').textContent = `${rows.length ? start + 1 : 0}–${start + visible.length} de ${rows.length} · Página ${page} de ${pages}`;
+  $('page-status').textContent = `Mostrando ${rows.length ? start + 1 : 0}–${start + visible.length} de ${rows.length} sitios${all ? '' : ` · Página ${page} de ${pages}`}`;
   $('page-prev').disabled = page === 1;
   $('page-next').disabled = page === pages;
   for (const row of visible) {

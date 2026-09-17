@@ -13,3 +13,10 @@ Thumbs.db
 .vscode/
 .idea/
 # Keep the generated Chromium release ZIP under version control.
+
+.cache/
+.tmp/
+tmp/
+temp/
+*.tmp
+*.bak

@@ -1,10 +1,20 @@
-# CookieKeep 1.1.1
+# CookieKeep
+
+Keep the cookies you want. Automatically clean the rest.
+
+CookieKeep is a Chrome and Edge extension that lets users protect the cookies they want to keep and automatically clean the rest.
 
 CookieKeep is a Manifest V3 extension for Chrome and Edge Chromium. Protect sites with one click and remove unprotected cookies locally. The interface is in Spanish. Automatic cleanup is disabled by default. There are no frameworks, third-party dependencies, telemetry or remote services.
 
+## Project status and license
+
+Version 1.1.1. Source and a Chromium distribution ZIP are versioned together. Automated checks use simulated browser APIs; headless Edge layout checks with synthetic APIs pass, while real Chrome/Edge extension-installation acceptance remains pending.
+
+No LICENSE file is currently present.
+
 ## Install
 
-Extract `releases/CookieKeep-1.1.1-Chromium.zip`, open `chrome://extensions` or `edge://extensions`, enable **Developer mode**, and choose **Load unpacked**. Select the extracted folder containing `manifest.json`. The manifest is at the archive root. You can also load the repository root directly. Pin the extension to display its cookie badge.
+Extract `releases/CookieKeep-v1.1.1-chromium.zip`, open `chrome://extensions` or `edge://extensions`, enable **Developer mode**, and choose **Load unpacked**. Select the extracted folder containing `manifest.json`. The manifest is at the archive root. You can also load the repository root directly. Pin the extension to display its cookie badge.
 
 To update an existing installation, keep its folder location, replace its runtime files, press **Reload** on the extensions page, then reopen the popup and dashboard. Keeping the extension installed preserves its local whitelist and settings.
 
@@ -19,7 +29,7 @@ node scripts/build.mjs
 
 `npm test` and `npm run build` are equivalent if npm is available. The build regenerates transparent PNG icons at 16/32/48/128 pixels, checks JavaScript syntax, relative imports, HTML resources, manifest entries and permissions. On Windows it also creates the versioned Chromium ZIP in `releases/`, containing only `manifest.json`, `src/` and `icons/`. The source tree remains directly loadable. On other platforms, validation and icon generation run; create the archive with `scripts/package.ps1` on Windows. The ZIP is intentionally tracked in Git alongside the complete source.
 
-The original 1.1.1 baseline passed 59 tests. The current suite passes 60, including dashboard pagination integration coverage. Tests use synthetic data and simulated browser APIs; they do not access a real browser profile.
+The original 1.1.1 baseline passed 59 tests. The current suite passes 69 tests, including dashboard pagination integration coverage for empty inventories, page boundaries, inventories over 1,000 domains and all four sorting modes. Tests use synthetic data and simulated browser APIs; they do not access a real browser profile.
 
 ## Use
 
@@ -87,4 +97,4 @@ The manifest requires Chrome 130 or later; Edge must expose equivalent Chromium 
 
 CookieKeep does not remove localStorage, IndexedDB, cache or other credentials. Open sites can immediately recreate cookies; the browser can discard session cookies independently of the whitelist. Repeated inventory checks can be slow with thousands of cookies, and concurrent expiration or regeneration affects aggregate estimates.
 
-Automated tests validate policy, guards, simulated alarms, preview consistency, ranking and pagination. Interactive installation and visual acceptance in real Chrome/Edge remain pending. See `VALIDATION.md`. For manual acceptance, verify pagination across all four sizes, search from a later page, inspect modal spacing, protect a site after scheduling cleanup and confirm it stays protected when cleanup runs in a disposable test profile.
+Automated tests validate policy, guards, simulated alarms, preview consistency, ranking and pagination. Layout measurements and screenshot inspection passed in headless Edge with synthetic browser APIs: dashboard gaps and modal link-to-buttons gap are 24 px; popup width is 360 px and bottom padding is 20 px. Interactive extension installation in Chrome/Edge remains pending. See `VALIDATION.md`. For manual acceptance, verify pagination across all four sizes, search from a later page, inspect modal spacing, protect a site after scheduling cleanup and confirm it stays protected when cleanup runs in a disposable test profile.
