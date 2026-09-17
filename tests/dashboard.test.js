@@ -19,12 +19,13 @@ globalThis.document={getElementById:get,createElement:tag=>new Element(tag)};
 get('sort').value='count';get('filter').value='all';get('history-period').value='30';get('page-size').value='50';
 let queries=0, fail=false, erased=false;
 let dashboardRows=[{domain:'z.test',count:500,bytes:1000,protectedCookies:0},{domain:'a.test',count:1,bytes:100,protectedCookies:0}];
-let dashboardWhitelist=[], historyRows=null;
+let dashboardWhitelist=[], historyRows=null,historyGranted=true,grantResult=true,permissionRequests=0;
 const historyEvents={};
 const now=Date.now(), day=86400000;
 globalThis.chrome={
   runtime:{getURL:path=>`chrome-extension://test/${path}`,sendMessage:async message=>({ok:true,data:message.type==='preview' ? {token:'preview-token',remove:501,keep:0,affectedDomains:['a.test','z.test'],keptDomains:[],protectedSites:[],approximateBytes:1100,rows:[]} : {rows:dashboardRows,state:{whitelist:dashboardWhitelist,history:[],interval:0},total:501,totalBytes:1100,preview:{remove:501},running:false}})},
   storage:{onChanged:{addListener(){}}},
+  permissions:{contains:async()=>historyGranted,request:async()=>{permissionRequests++;historyGranted=grantResult;return grantResult;},onRemoved:{addListener(fn){historyEvents.permissionRemoved=fn;}}},
   history:{search:async()=>{queries++;if(fail)throw new Error('denied');if(historyRows)return historyRows;return erased?[]:[{url:'https://a.test/page'},{url:'https://z.test/page'}];},getVisits:async({url})=>historyRows ? Array.from({length:Number(new URL(url).hostname.slice(4,8))%5+1},(_,i)=>({visitId:`${url}-${i}`,visitTime:now-day,transition:'link'})) : url.includes('a.test')?[{visitId:'1',visitTime:now-day,transition:'link'},{visitId:'2',visitTime:now-15*day,transition:'reload'}]:[{visitId:'3',visitTime:now-day,transition:'link'}],onVisited:{addListener(fn){historyEvents.visited=fn;}},onVisitRemoved:{addListener(fn){historyEvents.removed=fn;}}}
 };
 await import('../src/options/options.js');
@@ -145,4 +146,17 @@ test('pagination: global count, size, A-Z and local visits sorting before slicin
       get('search').value='';get('search').dispatch('input');
     }
   }
+});
+
+test('optional history: refusal, retry, grant and revocation keep pagination/cleanup usable',async()=>{
+  await inventoryFixture(107);historyGranted=false;grantResult=false;
+  get('sort').value='visits';get('sort').dispatch('input');
+  await until(()=>get('ranking-status').textContent.includes('El historial es opcional'));
+  assert.equal(get('history-permission').hidden,false);assert.equal(get('rows').children.length,50);assert.ok(permissionRequests>0);
+  get('page-next').onclick();assert.equal(get('rows').children.length,50);
+  grantResult=true;get('history-permission').onclick();await until(()=>get('ranking-status').textContent.includes('Datos consultados'));
+  assert.equal(get('history-permission').hidden,true);
+  historyGranted=false;historyEvents.permissionRemoved({permissions:['history']});assert.ok(get('ranking-status').textContent.includes('El historial es opcional'));assert.equal(get('history-permission').hidden,false);
+  const beforeQueries=queries;get('refresh').onclick();await until(()=>get('ranking-status').textContent.includes('El historial es opcional'));assert.equal(queries,beforeQueries);
+  get('sort').value='count';get('sort').dispatch('input');assert.equal(get('history-permission').hidden,true);assert.equal(get('rows').children.length,50);
 });

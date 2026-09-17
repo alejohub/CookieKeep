@@ -16,3 +16,7 @@
 /* Place version within the existing header spacing, preserving popup geometry. */
 .popup .popup-brand{position:relative}
 .popup .popup-version{position:absolute;left:0;top:calc(100% + 2px);font-size:11px;line-height:14px;white-space:nowrap}
+
+.cleanup-progress progress{display:block;width:100%;height:10px;margin-top:12px;accent-color:#13775b}
+.cleanup-progress p{margin:10px 0;line-height:1.6}
+.cleanup-progress[hidden]{display:none}

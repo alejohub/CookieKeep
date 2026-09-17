@@ -2,99 +2,101 @@
 
 Keep the cookies you want. Automatically clean the rest.
 
-CookieKeep is a Chrome and Edge extension that lets users protect the cookies they want to keep and automatically clean the rest.
-
-CookieKeep is a Manifest V3 extension for Chrome and Edge Chromium. Protect sites with one click and remove unprotected cookies locally. The interface is in Spanish. Automatic cleanup is disabled by default. There are no frameworks, third-party dependencies, telemetry or remote services.
+CookieKeep is a Chrome and Edge extension that lets users protect the cookies they want to keep and automatically clean the rest. The Spanish interface runs locally, without frameworks, third-party runtime dependencies, analytics, telemetry or remote services. Automatic cleanup is disabled by default.
 
 ## Project status and license
 
-Version 1.1.1. Source and a Chromium distribution ZIP are versioned together. Automated checks use simulated browser APIs; headless Edge layout checks with synthetic APIs pass, while real Chrome/Edge extension-installation acceptance remains pending.
+Version **1.1.2** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.2-chromium.zip`.
+
+All 112 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
 No LICENSE file is currently present.
 
 ## Install
 
-Extract `releases/CookieKeep-v1.1.1-chromium.zip`, open `chrome://extensions` or `edge://extensions`, enable **Developer mode**, and choose **Load unpacked**. Select the extracted folder containing `manifest.json`. The manifest is at the archive root. You can also load the repository root directly. Pin the extension to display its cookie badge.
+Download and extract `releases/CookieKeep-v1.1.2-chromium.zip`. The manifest is at the archive root.
 
-To update an existing installation, keep its folder location, replace its runtime files, press **Reload** on the extensions page, then reopen the popup and dashboard. Keeping the extension installed preserves its local whitelist and settings.
+**Chrome:** open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder containing `manifest.json`.
 
-## Development and release
+**Microsoft Edge:** open `edge://extensions` and follow the same Developer mode / Load unpacked steps.
 
-Requires Node.js 20 or later; Windows PowerShell is used for ZIP packaging. No dependency installation is needed. Run from the repository root:
+You can also load the repository root. Pin the extension to see its badge. Update an existing installation by keeping its folder path, replacing runtime files, pressing **Reload**, and reopening the views; do not uninstall if you want to preserve local settings. Existing installations may retain a previously granted history permission; you can revoke it with the browser's extension controls or Permissions API.
+
+## Features
+
+- One-click protection for the current HTTP/HTTPS hostname.
+- Manual global or per-site cookie cleanup, requiring a fresh preview and confirmation.
+- Scheduled cleanup every 24 hours, 3 days or 7 days using current cookies and protection.
+- Dynamic preview with aggregates and a separate per-domain page with protection actions.
+- Dashboard totals, approximate payload size, cookie metadata and aggregate cleanup history.
+- Search, protected/unprotected filters and sorting by cookies, size, A-Z or local visits.
+- Pagination: 50 / 100 / 200 / Todas (All), default 50, after filtering and sorting.
+- Worker-owned progress, percentage, processed/total, deleted/failed/protected-skip counts and cancellation.
+- Dynamic cookie-count badge and manifest version shown below the popup brand.
+
+The popup displays applicable cookies across accessible stores, estimated size and next cleanup. Green badge means explicitly protected, red means cookies without explicit hostname protection, gray means no cookies; internal browser pages have no badge. Conserved shared cookies are distinguished from explicit protection in the dashboard.
+
+## Manual preview security
+
+A preview token authorizes only the metadata identities of candidates in that preview. On confirmation, CookieKeep intersects that authorization with the current inventory and protection. New cookies require a new preview. A candidate is skipped if the actual remove selector could affect any cookie outside the authorized set, even when that cookie shares its name and URL. Host scope must match the token; tokens are one-use, expire after ten minutes, are bounded to 32 entries and disappear on worker restart.
+
+Identity includes store ID, name, domain, path, hostOnly, Secure, HttpOnly, SameSite, session/persistent status, expiration date, and the full partition top-level site/cross-site-ancestor pair. **No cookie value is stored in a token.** Observed cookie-change events invalidate pending and active manual authorization, including value-only overwrites. Missing or changed metadata fails closed.
+
+The API exposes no creation ID or atomic get/remove transaction. A same-metadata replacement cannot be distinguished by identity alone; change events reduce this risk but cannot eliminate an external mutation in the final API race window. CookieKeep therefore does not claim an absolute guarantee against every browser/site race.
+
+Automatic cleanup does not reuse a scheduled preview list. It builds candidates when the alarm executes and rechecks current protection during each batch. A cookie created after scheduling is considered at execution; cookies created after that run's initial inventory wait for a subsequent run rather than silently expanding that run's selector.
+
+## Protection and precise removal scope
+
+Protection uses exact hostnames, not guessed registrable domains. Host-only cookies match exactly; Domain cookies match the hostname and descendants with label boundaries. `evil-example.com` never matches `example.com`. Case, cookie/DNS dots and IDNs are normalized; `www` remains distinct.
+
+Protecting `www.example.com` preserves applicable `.example.com` cookies. Protecting `example.com` does not automatically protect host-only cookies of `sub.example.com`. Shared Domain cookies and CHIPS top-level-site parent/child relationships are preserved conservatively. Incomplete partitions or unknown hostOnly fields are protected.
+
+The collision defense considers the effective remove URL, domain/hostOnly, path boundaries, HTTP/HTTPS, store and partition. Unrelated same-name cookies no longer inherit protection. Potential unpartitioned collateral of a partitioned Chromium deletion is included conservatively; other CHIPS partitions remain separate. Ambiguous URL paths are skipped. `cookies.get` selection is checked, then Chrome itself supplies the URL-matching inventory, which is checked again before removal and afterward to confirm absence. Overlapping selectors are not run concurrently.
+
+## Performance, progress and cancellation
+
+`DELETE_CONCURRENCY = 8` bounds batches; there is no `Promise.all` over the full inventory. The old pipeline performed global inventories and a complete policy calculation for every cookie. The new pipeline enumerates globally once, then uses targeted name/store queries covering all possible partitions. It reads protection once per batch under the same queue used by protection writes. A protection request is saved after already-started batch operations finish and before the next batch begins; it cannot undo an in-flight removal.
+
+Progress is aggregated in the worker, published at batch boundaries at most every 200 ms plus start/end, and checkpointed in `storage.session`. UI polling is 250 ms while active and 1 second otherwise, independent of deletion calls. Closing/reopening a popup retrieves current state. Cancel stops new removal starts, lets calls already in flight finish, and stores a partial aggregate summary. A restarted worker marks an interrupted operation failed and requires a new preview; it does not resume a stale deletion list. Cleanup history is written once at the end, at most 30 records. Runs have a three-minute limit.
+
+Synthetic benchmark (`node scripts/benchmark.mjs 1000 1`): 1,000 cookies and 1 ms requested API latency measured **108,044.68 ms** for the sequential global-inventory pipeline and **11,714.51 ms** for bounded targeted deletion. Global getAll calls: 4,002 versus 2; returned cookie rows: 1,001,000 versus 3,000; storage reads: 1,002 versus 127; concurrent removes: 1 versus 8. Timer scheduling and synthetic data affect these measurements. They do not predict real-profile throughput or replace measuring the reported 3,500-cookie workload.
+
+## Optional local visit ranking
+
+`history` is optional and used only for **Más visitados**. Selecting that sort requests the permission directly from the user gesture; Chrome avoids another prompt if it is already granted. The load checks `permissions.contains`. Refusal leaves the dashboard/cleanup usable with A-Z and unavailable visit counts, explains the permission and offers **Permitir historial** to retry. Revocation clears the in-memory cache and degrades the view.
+
+Periods are rolling 7/30/90 days or all available history; default 30. One global history search is followed by relevant unique URL visit queries, at most six concurrently. Counts use visit timestamps and unique visit IDs, exclude subframes, and include reloads and available synced records. They represent navigation records, not users or sessions. Parent/child row counts can overlap. Empty history means zero; loading/errors use A-Z and unavailable counts, never cookie counts. The 100,000-URL limit or missing timestamps produces partial `≥` counts. URLs are never persisted; aggregates exist only in dashboard memory and are invalidated by refresh/history events.
+
+## Privacy and permissions
+
+Processing stays local. Cookie values are read transiently for UTF-8 JSON payload-size estimates; they are never logged, persisted in local/session storage, shown in the UI or sent to servers. Approximate size is not disk usage. Local storage contains whitelist, schedule and aggregate cleanup records; session storage contains aggregate progress. No content scripts or external network/analytics code exists.
+
+| Manifest permission | Purpose |
+| --- | --- |
+| `cookies` | Enumerate, observe and remove cookies |
+| `storage` | Local settings/history and session progress |
+| `alarms` | Recoverable scheduled cleanup |
+| Optional `history` | Local dashboard visit ranking only |
+| HTTP/HTTPS host permissions | Cookies and covered tab URLs |
+
+The CSP is `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'`. It limits packaged subresources, prohibits covered connect operations, plugins, frames, forms and base overrides. It is defense in depth, not a universal prohibition of network activity through navigation or browser APIs. UI uses local DOM construction and textContent, without remote scripts or HTML derived from cookie data.
+
+## Development and validation
+
+Requires Node.js 20+; ZIP packaging uses Windows PowerShell. No runtime dependencies or npm install are needed:
 
 ```powershell
 node --test
 node scripts/build.mjs
 ```
 
-`npm test` and `npm run build` are equivalent if npm is available. The build regenerates transparent PNG icons at 16/32/48/128 pixels, checks JavaScript syntax, relative imports, HTML resources, manifest entries and permissions. On Windows it also creates the versioned Chromium ZIP in `releases/`, containing only `manifest.json`, `src/` and `icons/`. The source tree remains directly loadable. On other platforms, validation and icon generation run; create the archive with `scripts/package.ps1` on Windows. The ZIP is intentionally tracked in Git alongside the complete source.
+`npm test` / `npm run build` work if npm exists. Build regenerates PNGs and validates JavaScript, imports, HTML resources, manifest and required/optional permissions. On Windows it produces the manifest-versioned Chromium ZIP and verifies entries, version and runtime hashes. Only manifest, runtime source and icons are packaged. Tests, documentation, scripts, Git, credentials and temporary files are excluded. ZIPs are intentionally versioned.
 
-The original 1.1.1 baseline passed 59 tests. The current suite passes 70 tests, including dashboard pagination integration coverage for empty inventories, page boundaries, inventories over 1,000 domains and all four sorting modes. Tests use synthetic data and simulated browser APIs; they do not access a real browser profile.
+`node scripts/benchmark.mjs 1000 1` runs the synthetic comparison. `scripts/browser-smoke.mjs` is optional and needs an existing local Playwright installation (or its index.mjs path as an argument); it always creates a new temporary Edge profile. Neither test tool accesses your real profile. See `BROWSER_VALIDATION.md`, `VALIDATION.md` and `CHANGES.md`.
 
-## Use
+Source: `src/background/worker.js` coordinates APIs, jobs and alarms; `src/lib/` implements domains, selector/identity, policy, cleanup, progress and history; `src/popup/` and `src/options/` contain the views; `tests/` contains synthetic regressions; `scripts/` contains build, packaging and optional QA tools.
 
-The popup shows the extension version below its name, read dynamically from the runtime manifest. It displays the current HTTP/HTTPS hostname, protection state, applicable cookies across accessible stores, estimated size and next cleanup. Protection toggles with one click. Green badge means explicitly whitelisted; red means cookies without explicit hostname protection; gray means no cookies. Internal browser pages have an empty badge.
+## Limits
 
-The dashboard displays total cookies, domains, estimated size, protected sites and removable cookies. Search and filter rows, sort by count, size, domain or visits, inspect metadata, protect sites, or delete unprotected cookies. Cookie domains are normalized without their leading dot. Whitelisted hostnames appear even when they have no cookies. Conserved cookies inherited from another protected site are distinguished from explicit protection.
-
-Pagination offers **50 / 100 / 200 / Todas (All)**, defaulting to 50. Search, state filters and sorting apply to the complete inventory before pagination. Changing those controls or page size returns to page one. Refresh clamps the current page if the inventory shrinks. Previous/next controls, row range and page count reflect the filtered results. All renders the complete filtered inventory and can be slower with large inventories.
-
-**Vista previa / Dry Run** never modifies cookies. Manual cleanup requires confirmation. Automatic intervals are 24 hours, 3 days or 7 days. The activation modal shows aggregate counts, a separately spaced **Ver qué se eliminará** link and confirmation controls. The link opens an extension tab with a fresh preview, per-domain counts and protection actions. Protection and cookie changes recalculate that preview. The modal updates its summary after local settings changes. Dashboard sections use consistent spacing; empty status messages occupy no space.
-
-Preview tokens expire after ten minutes or a worker restart. Generate a new preview when needed. Scheduled cleanup always reads the current cookies and whitelist; configuring a schedule does not freeze a deletion list. Alarms are recovered from local settings on worker startup, browser startup/installation and view access. They can be delayed and do not wake a sleeping device. There is no cleanup on browser shutdown.
-
-## Protection and safe deletion
-
-Protection uses exact hostnames, without automatic registrable-domain grouping. Host-only cookies require an exact hostname match. Domain cookies apply to matching hosts and subdomains, with label boundaries: protecting `www.example.com` conserves applicable `.example.com` cookies, but protecting `example.com` does not automatically protect host-only cookies of `sub.example.com`. `evil-example.com` never matches `example.com`. Case, leading cookie dots, trailing DNS dots and IDNs are normalized; `www` remains distinct.
-
-Shared parent-domain cookies are conservatively preserved. CHIPS cookies are protected when applicable to a protected hostname or when their partition top-level site has a parent/child relationship to it. Opaque or incomplete partitions are preserved.
-
-Cleanup enumerates accessible stores and partitions, then uses the same pure policy as dry run. Before each deletion it rereads inventory and protection through a shared queue, constructs a safe HTTP/HTTPS URL and checks cookie identity (name, domain, path, store and full partition key). Ambiguous paths are skipped. Because the removal API cannot select every identity field explicitly, any name/store/partition group containing a protected cookie is skipped conservatively. Removal is followed by an absence check.
-
-The whitelist also takes priority during per-site deletion. Storage failure, an invalid whitelist or incomplete inventory blocks cleanup. Removal failures are counted as failures. A run is limited to three minutes; an incomplete run can be repeated. Protection takes effect when saved and cannot undo a deletion already started. Browser APIs do not provide an atomic transaction against external site changes.
-
-## Visits ranking
-
-**Más visitados** shows visits over rolling 7/30/90-day windows or all available history; the default is 30 days. One global `history.search` query is followed by `getVisits` for relevant unique HTTP/HTTPS URLs, with at most six concurrent requests. Counts use visit timestamps, deduplicate visit IDs, exclude subframes and include reloads and available synchronized records. They represent navigation records, not users or sessions; cumulative `visitCount` is not used.
-
-A domain row includes visits to its subdomains using label boundaries. Parent and child rows may overlap, so their counts should not be summed. Ties use domain A–Z. No records means zero visits. Loading or failures show A–Z ordering and unavailable visit counts, with an explanatory status. There is no fallback to cookie counts. Reaching the 100,000-URL search limit or encountering missing timestamps displays partial counts with `≥` and an incomplete-ranking warning.
-
-History is read only when that sort is selected in the dashboard. Aggregates are cached only in memory by period and domain inventory. Refresh, new visits and history deletion invalidate the cache; stale requests are discarded. No browsing URLs are persisted. Deleted or unavailable history cannot be reconstructed.
-
-## Privacy and permissions
-
-Cookie values are read transiently for estimated UTF-8 JSON size. They are never stored, logged, sent to the interface or transmitted to servers. Details show metadata only. Sizes are payload estimates, not disk usage. Local extension storage contains the whitelist, schedule and at most 30 aggregate cleanup records (date, source, deletion/domain counts, estimated bytes, skipped/failed counts and incomplete flag).
-
-The extension uses local DOM construction and `textContent`, without content scripts or remote scripts. Its CSP blocks external connections.
-
-| Permission | Purpose |
-| --- | --- |
-| `cookies` | Enumerate, observe and remove cookies |
-| `storage` | Store local protection, schedule and aggregate cleanup records |
-| `alarms` | Recoverable periodic cleanup |
-| `history` | Read local visit records for dashboard ranking; never modify history |
-| HTTP/HTTPS host permissions | Access cookies and covered tab URLs |
-
-The manifest does not request `tabs`, `activeTab`, `scripting`, `browsingData`, notifications or file access.
-
-## Source layout
-
-- `manifest.json`: Manifest V3, version 1.1.1.
-- `src/background/worker.js`: messages, alarms, badges and coordination.
-- `src/lib/`: domain matching, cookie identity, policy, storage, compatibility, cleanup, visit ranking and DOM helpers.
-- `src/popup/`: compact current-site view.
-- `src/options/`: dashboard and detailed preview.
-- `src/shared.css`: shared layout and styles.
-- `icons/`: generated transparent PNG icons.
-- `tests/`: policy and simulated browser integration tests.
-- `scripts/`: validation, icon generation and Windows ZIP packaging.
-- `releases/`: versioned Chromium ZIP.
-- `CHANGES.md`, `VALIDATION.md`, `IMPLEMENTATION_PLAN.md`: change and implementation records.
-
-## Compatibility and verification limits
-
-The manifest requires Chrome 130 or later; Edge must expose equivalent Chromium APIs, including full partition keys. Unsupported partition enumeration blocks cleanup instead of silently using partial results. Only the installed profile and API-accessible stores are available. Incognito must be explicitly enabled and has no separately validated workflow.
-
-CookieKeep does not remove localStorage, IndexedDB, cache or other credentials. Open sites can immediately recreate cookies; the browser can discard session cookies independently of the whitelist. Repeated inventory checks can be slow with thousands of cookies, and concurrent expiration or regeneration affects aggregate estimates.
-
-Automated tests validate policy, guards, simulated alarms, preview consistency, ranking and pagination. Layout measurements and screenshot inspection passed in headless Edge with synthetic browser APIs: dashboard gaps and modal link-to-buttons gap are 24 px; popup width is 360 px and bottom padding is 20 px. Interactive extension installation in Chrome/Edge remains pending. See `VALIDATION.md`. For manual acceptance, verify pagination across all four sizes, search from a later page, inspect modal spacing, protect a site after scheduling cleanup and confirm it stays protected when cleanup runs in a disposable test profile.
+Chrome 130+ and equivalent Edge APIs are required. Unsupported partition enumeration blocks deletion. Only accessible profile stores are handled; incognito requires explicit enablement and separate acceptance. Browser sleep can delay alarms. CookieKeep does not clear localStorage, IndexedDB or cache, and cannot stop sites recreating cookies or the browser discarding session cookies. Unexpected browser/site changes may affect measured aggregate counts. Safe skipping can preserve extra cookies when selectors overlap or become ambiguous; generate a fresh preview or wait for the next schedule.

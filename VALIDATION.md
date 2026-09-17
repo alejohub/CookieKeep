@@ -84,3 +84,15 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - All 70 tests passed, zero failed. The popup integration test uses runtime versions 9.8.7 and 2.3.4.5, verifying dynamic display and preserving snapshot and dashboard actions.
 - Build passed; regenerated versioned Chromium ZIP with 21 verified runtime files and manifest at root.
 - Compared the current popup against the preceding commit in headless Edge with synthetic browser APIs. Body, header, brand, right-hand label, status, hostname, stats, controls and card bounds are identical. Version is 11 px muted text aligned below the brand within existing header spacing; no page errors.
+
+## CookieKeep 1.1.2 — security and performance patch
+
+- H1 and H2 fixed first; 94 tests passed before optimization. Final suite: 112 passed, zero failed.
+- Real unpacked extension in a new temporary Edge profile passed independent-domain collisions, manual A+B consent boundary, parent Domain collateral, newly created same-name paths, CHIPS protection/removal and native manifest/CSP loading.
+- Additional real browser run seeded 1,000 synthetic cookies, closed the initiating page during deletion, recovered running progress in a new popup and cancelled with a partial summary. No real profile used.
+- Concurrency bounded to 8; protection and batch writes share the queue. Unit coverage includes queued protection, API errors, cancellation, 0/1/100/1,200 candidates, monotonic progress and 200 ms throttling without real waits.
+- Synthetic 1,000-cookie benchmark, 1 ms requested latency: sequential-global 108044.68 ms; bounded-targeted 11714.51 ms. Global getAll calls 4002 -> 2; returned rows 1001000 -> 3000; storage reads 1002 -> 127; writes 1 -> 1. This is mock throughput, not real-profile performance.
+- history moved to optional_permissions; decline/retry/revocation tests passed. CSP hardened with default/style/image/base/form/frame restrictions and accurate documentation of its scope.
+- Version from manifest/package is 1.1.2. Source and new Chromium ZIP are versioned; the published 1.1.1 ZIP and external audit remain unchanged.
+- BROWSER_VALIDATION.md lists remaining interactive Chrome/Edge acceptance: native optional-permission prompts, detailed SameSite/iframe CHIPS/stores, alarms and forced worker termination. Interrupted-job recovery is covered by unit tests, not claimed as a real forced-termination test.
+- SECURITY_REVIEW_1.1.2.md records selector sources, identity limitations, measurements and queue semantics. No cookie values in tokens, local/session aggregates, logs or UI.

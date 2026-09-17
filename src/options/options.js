@@ -1,9 +1,12 @@
 import {$,bytes,date,request,node,button,perform,clean,previewText} from '../lib/ui.js';
 import {createHistoryCache, sortByVisits} from '../lib/history.js';
+import {startCleanupProgress} from '../lib/progress-ui.js';
 let snapshot;
+const progress=startCleanupProgress(active=>{if(snapshot){snapshot.running=active;renderRows();}perform(refresh);});
 let page = 1;
 let activationPreview = null;
-const historyCache = createHistoryCache(chrome.history);
+const historyCache = createHistoryCache({search:args=>chrome.history.search(args),getVisits:args=>chrome.history.getVisits(args)});
+let historyListening=false;
 let ranking = {phase: 'idle'}, rankingRequest = 0, historyTimer;
 const historyPeriod = () => $('history-period').value === 'all' ? 'all' : Number($('history-period').value);
 function rankingControls() {
@@ -14,6 +17,8 @@ function rankingControls() {
   const label = historyPeriod() === 'all' ? 'Visitas · todo el historial disponible' : `Visitas últimos ${historyPeriod()} días`;
   $('visits-heading').textContent = label;
   let text = `${label}: consultando historial local…`;
+  $('history-permission').hidden = !active || ranking.phase!=='permission';
+  if(ranking.phase==='permission')text='El historial es opcional. Para ordenar por visitas, pulsa Permitir historial. Puedes seguir usando el dashboard y la limpieza sin concederlo.';
   if (ranking.phase === 'error') text = 'No se pudo consultar el historial. Comprueba el permiso de historial y pulsa Actualizar para reintentar. Se muestra orden A–Z y visitas no disponibles; no se usa el número de cookies.';
   if (ranking.phase === 'ready') {
     const result = ranking.result;
@@ -28,6 +33,10 @@ async function loadRanking() {
   ranking = {phase: 'loading'};
   renderRows();
   try {
+    const granted=await chrome.permissions.contains({permissions:['history']});
+    if(currentRequest!==rankingRequest || $('sort').value!=='visits')return;
+    if(!granted){ranking={phase:'permission'};renderRows();return;}
+    attachHistoryListeners();
     const result = await historyCache.get(snapshot.rows.map(row => row.domain), historyPeriod());
     if (currentRequest !== rankingRequest || $('sort').value !== 'visits') return;
     ranking = {phase: 'ready', result};
@@ -79,7 +88,7 @@ function renderRows() {
     tr.append(status, actions); $('rows').append(tr);
   }
 }
-async function refresh(){snapshot=await request('snapshot'); $('metrics').replaceChildren();for(const [label,value] of [['Cookies',snapshot.total],['Dominios con cookies',snapshot.rows.filter(r=>r.count).length],['Tamaño total estimado',bytes(snapshot.totalBytes)],['Sitios protegidos',snapshot.state.whitelist.length],['Cookies eliminables',snapshot.preview.remove]]){const card=node('div',undefined,'card');card.append(node('span',label,'muted'),node('div',String(value),'metric'));$('metrics').append(card);}$('interval').value=snapshot.state.interval; $('next').textContent=`Próxima limpieza: ${date(snapshot.nextRun)}`; $('clean').disabled=snapshot.running; $('history').replaceChildren(...snapshot.state.history.map(r=>node('li',`${date(r.at)} · ${r.source==='automatic'?'Automática':'Manual'} · ${r.deleted} cookies · ${r.affectedDomains} dominios · ${bytes(r.approximateBytes)} · ${r.skipped} omitidas · ${r.failed} fallidas${r.incomplete?' · Incompleta':''}`)));if(!snapshot.state.history.length)$('history').append(node('li','Todavía no hay limpiezas.'));renderRows();await loadRanking();}
+async function refresh(){snapshot=await request('snapshot'); $('metrics').replaceChildren();for(const [label,value] of [['Cookies',snapshot.total],['Dominios con cookies',snapshot.rows.filter(r=>r.count).length],['Tamaño total estimado',bytes(snapshot.totalBytes)],['Sitios protegidos',snapshot.state.whitelist.length],['Cookies eliminables',snapshot.preview.remove]]){const card=node('div',undefined,'card');card.append(node('span',label,'muted'),node('div',String(value),'metric'));$('metrics').append(card);}$('interval').value=snapshot.state.interval; $('next').textContent=`Próxima limpieza: ${date(snapshot.nextRun)}`; $('clean').disabled=snapshot.running; $('history').replaceChildren(...snapshot.state.history.map(r=>node('li',`${date(r.at)} · ${r.source==='automatic'?'Automática':'Manual'} · ${r.deleted} cookies · ${r.affectedDomains} dominios · ${bytes(r.approximateBytes)} · ${r.skipped} omitidas · ${r.failed} fallidas${r.incomplete?' · Incompleta':''}`)));if(!snapshot.state.history.length)$('history').append(node('li','Todavía no hay limpiezas.'));renderRows();if(snapshot.progress)progress.render(snapshot.progress);await loadRanking();}
 $('refresh').onclick=()=>perform(async()=>{historyCache.clear();await refresh();},$('refresh'));$('dry').onclick=()=>perform(preview,$('dry'));$('clean').onclick=()=>perform(()=>clean(null,refresh),$('clean'));
 $('settings').onclick=()=>perform(async()=>{
   const interval=Number($('interval').value);
@@ -105,7 +114,7 @@ async function refreshActivationPreview() {
 for(const id of ['search','filter','page-size']) $(id).addEventListener('input',()=>{page=1;if(snapshot)renderRows();});
 $('page-prev').onclick=()=>{page--;renderRows();};
 $('page-next').onclick=()=>{page++;renderRows();};
-$('sort').addEventListener('input',()=>{if (!snapshot) return; page=1;rankingRequest++; renderRows(); if ($('sort').value==='visits') perform(loadRanking);});
+$('sort').addEventListener('input',()=>{if (!snapshot) return; page=1;rankingRequest++; renderRows(); if ($('sort').value==='visits') requestRankingPermission();});
 $('history-period').addEventListener('input',()=>perform(loadRanking));
 function invalidateHistory() {
   historyCache.clear(); rankingRequest++; ranking={phase:'loading'};
@@ -113,7 +122,15 @@ function invalidateHistory() {
   clearTimeout(historyTimer);
   historyTimer=setTimeout(()=>perform(loadRanking),350);
 }
-chrome.history?.onVisited?.addListener(invalidateHistory);
-chrome.history?.onVisitRemoved?.addListener(invalidateHistory);
+function attachHistoryListeners(){if(historyListening)return;chrome.history?.onVisited?.addListener(invalidateHistory);chrome.history?.onVisitRemoved?.addListener(invalidateHistory);historyListening=true;}
+function requestRankingPermission(){
+  // Invoke request synchronously from the user's input/click gesture. Chrome
+  // does not prompt again when the optional permission is already granted.
+  const currentRequest=++rankingRequest;ranking={phase:'loading'};renderRows();
+  const grant=chrome.permissions.request({permissions:['history']});
+  perform(async()=>{const allowed=await grant;if(currentRequest!==rankingRequest || $('sort').value!=='visits')return;if(allowed){await loadRanking();}else{ranking={phase:'permission'};renderRows();}});
+}
+$('history-permission').onclick=requestRankingPermission;
+chrome.permissions.onRemoved.addListener(removed=>{if(!removed.permissions?.includes('history'))return;historyCache.clear();rankingRequest++;ranking={phase:'permission'};if(snapshot)renderRows();});
 chrome.storage.onChanged.addListener((_change,area)=>{if(area==='local'){perform(refresh);perform(refreshActivationPreview);}});
 perform(refresh);

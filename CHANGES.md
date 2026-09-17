@@ -69,3 +69,13 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Added a small muted version below the CookieKeep brand using chrome.runtime.getManifest().version; no fixed version string in the UI.
 - Retained existing popup/header geometry and the right-hand local-browser label placement.
 - Added coverage using two alternative runtime versions; all 70 tests pass. Build and Chromium ZIP verification pass.
+
+## 1.1.2 — security, bounded deletion and progress
+
+- H1: scope-aware collision protection replaces global name/store/partition conservation; unrelated domains remain removable.
+- H2: one-use manual previews authorize metadata identities and exact host scope. New/changed cookies or unauthorized selector collateral are skipped. Current protection always takes priority. Automatic alarms use current execution-time candidates, not scheduled previews.
+- Bounded deletion concurrency 8; targeted inventories replace per-cookie global scans. Added worker-owned progress, throttled session checkpoints, partial cancellation and safe interrupted-run handling.
+- history is now optional, with gesture-based request, refusal/retry and revocation handling.
+- Hardened default/style/image/base/form/frame CSP directives; corrected the scope of privacy/CSP claims.
+- Added synthetic regressions, benchmark, real disposable-profile Edge smoke and reproducible manual Chrome/Edge guide. 112 tests passed, zero failed.
+- Version 1.1.2 and versioned Chromium ZIP; 1.1.1 published archive retained unchanged. No license selected.

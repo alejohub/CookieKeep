@@ -18,7 +18,7 @@ export function previewText(p) { return `${p.affectedDomains.length} sitios que 
 export async function clean(host,refresh) {
   const p=await request('preview',{host});
   if(!confirm(`${previewText(p)}\n\nLa whitelist siempre tiene prioridad. La limpieza puede cerrar sesiones de sitios no protegidos. ¿Limpiar ahora?`)) return;
-  const r=await request('clean',{token:p.token});
+  const r=await request('clean',{token:p.token,host});
   await refresh();
   $('notice').textContent=`Eliminadas: ${r.deleted}. Omitidas: ${r.skipped}. Fallidas: ${r.failed}.${r.incomplete ? ' Tiempo límite alcanzado; puedes repetir la limpieza.' : ''}`;
 }

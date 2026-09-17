@@ -1,12 +1,14 @@
 import {normalizeHost, pageHost, applies, isProtected} from '../lib/domains.js';
-import {estimateBytes, metadata} from '../lib/cookies.js';
+import {estimateBytes, metadata, identity} from '../lib/cookies.js';
 import {inventory} from '../lib/compat.js';
 import {readState, saveState, createQueue} from '../lib/storage.js';
 import {planCleanup} from '../lib/policy.js';
 import {cleanup} from '../lib/cleanup.js';
+import {createJob} from '../lib/job.js';
 const api = chrome, queue = createQueue(), previews = new Map();
 const ALARM = 'cookiekeep-clean';
-let running = false;
+let running = false,activeAuthorization=null;
+const job=createJob(api,(host,source,options)=>cleanup(api,queue,host,source,options));
 async function ensureAlarm() {
   const state = await readState(api);
   if (!state.interval) { await api.alarms.clear(ALARM); return; }
@@ -27,14 +29,16 @@ async function refreshBadges() {
     } catch { /* tab may have closed */ }
   }
 }
-async function runClean(host, source) {
+async function runClean(host, source, authorized = null) {
   if (running) throw new Error('Ya hay una limpieza en curso');
-  running = true;
-  try { return await cleanup(api, queue, host,source); }
-  finally { running = false; await refreshBadges().catch(() => {}); }
+  running = true;activeAuthorization=authorized;
+  try { return await job.start(host,source,authorized); }
+  finally { activeAuthorization=null;running = false; await refreshBadges().catch(() => {}); }
 }
 async function handle(message) {
   if (!message || typeof message.type !== 'string') throw new Error('Solicitud inválida');
+  if(message.type==='status')return job.status();
+  if(message.type==='cancel')return job.cancel();
   if (message.type === 'snapshot') {
     await queue(ensureAlarm);
     const [state,cookies,alarm,tabs] = await Promise.all([readState(api),inventory(api),api.alarms.get(ALARM),api.tabs.query({active:true,currentWindow:true})]);
@@ -46,8 +50,9 @@ async function handle(message) {
       const row = groups.get(domain); row.count++; row.bytes += estimateBytes(c); if (isProtected(c,state.whitelist)) row.protectedCookies++;
     }
     for (const domain of state.whitelist) if (!groups.has(domain)) groups.set(domain,{domain,count:0,bytes:0,protectedCookies:0});
+    const progress=await job.status();
     const relevant = host ? cookies.filter(c=>applies(c,host)) : [];
-    return {state,host,siteCount:relevant.length,siteBytes:relevant.reduce((n,c)=>n+estimateBytes(c),0), rows:[...groups.values()],total:cookies.length,totalBytes:cookies.reduce((n,c)=>n+estimateBytes(c),0), preview:planCleanup(cookies,state.whitelist).summary,nextRun:alarm?.scheduledTime,running};
+    return {state,host,siteCount:relevant.length,siteBytes:relevant.reduce((n,c)=>n+estimateBytes(c),0), rows:[...groups.values()],total:cookies.length,totalBytes:cookies.reduce((n,c)=>n+estimateBytes(c),0), preview:planCleanup(cookies,state.whitelist).summary,nextRun:alarm?.scheduledTime,running:progress.state==='running'||progress.state==='cancelling',progress};
   }
   if (message.type === 'toggle') {
     const host = normalizeHost(message.host);
@@ -58,8 +63,9 @@ async function handle(message) {
   if (message.type === 'preview') {
     const host=message.host ? normalizeHost(message.host) : null;
     const state=await readState(api), plan=planCleanup(await inventory(api),state.whitelist,host);
-    const token=crypto.randomUUID(); previews.set(token,{host,at:Date.now()});
+    const token=crypto.randomUUID(); previews.set(token,{host,at:Date.now(),authorized:new Set(plan.remove.map(identity))});
     for (const [key,p] of previews) if (Date.now()-p.at>600000) previews.delete(key);
+    while(previews.size>32)previews.delete(previews.keys().next().value);
     return {token,...plan.summary,rows:plan.rows};
   }
   if (message.type === 'clean' || message.type === 'settings') {
@@ -67,7 +73,11 @@ async function handle(message) {
     if (message.type==='clean' || message.interval!==0) {
       if (!preview || Date.now()-preview.at>600000 || (message.type==='settings' && preview.host)) throw new Error('Haz una nueva vista previa antes de continuar');
     }
-    if (message.type==='clean') { previews.delete(message.token); return runClean(preview.host,'manual'); }
+    if (message.type==='clean') {
+      const host=message.host ? normalizeHost(message.host) : null;
+      if(host!==preview.host)throw new Error('Scope de preview distinto');
+      previews.delete(message.token); return runClean(host,'manual',preview.authorized);
+    }
     if (![0,1440,4320,10080].includes(message.interval)) throw new Error('Intervalo inválido');
     await queue(async()=>{const state=await readState(api); state.interval=message.interval; state.nextRun=message.interval ? Date.now()+message.interval*60000 : null; await saveState(api,state); await api.alarms.clear(ALARM); await ensureAlarm();});
     previews.delete(message.token); return true;
@@ -84,5 +94,5 @@ api.runtime.onInstalled.addListener(()=>{queue(ensureAlarm).then(refreshBadges).
 api.tabs.onActivated.addListener(()=>refreshBadges().catch(()=>{}));
 api.tabs.onUpdated.addListener((_id,change)=>{if(change.url || change.status==='complete') refreshBadges().catch(()=>{});});
 let badgeTimer;
-api.cookies.onChanged.addListener(()=>{clearTimeout(badgeTimer); badgeTimer=setTimeout(()=>refreshBadges().catch(()=>{}),300);});
+api.cookies.onChanged.addListener(change=>{if(change?.cookie){const id=identity(change.cookie);for(const preview of previews.values())preview.authorized.delete(id);activeAuthorization?.delete(id);}clearTimeout(badgeTimer); badgeTimer=setTimeout(()=>{if(!running)refreshBadges().catch(()=>{});},300);});
 queue(ensureAlarm).catch(()=>{});
