@@ -6,9 +6,9 @@ CookieKeep is a Chrome and Edge extension that lets users protect the cookies th
 
 ## Project status and license
 
-Version **1.1.7** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.7-chromium.zip`.
+Version **1.1.7** adds recent-cookie cleanup, separates the automatic and recent cleanup cards, and polishes popup/dashboard headers with dynamic version metadata and explicit GitHub links. Earlier cleanup-policy, progress, cancellation, optional history and CSP safeguards remain in place. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.7-chromium.zip`.
 
-All 174 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
+All 177 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
 No LICENSE file is currently present.
 
@@ -32,7 +32,8 @@ You can also load the repository root. Pin the extension to see its badge. Updat
 - Search, protected/unprotected filters and sorting by cookies, size, A-Z or local visits.
 - Pagination: 50 / 100 / 200 / Todas (All), default 50, after filtering and sorting.
 - Worker-owned progress, percentage, processed/total, deleted/failed/protected-skip counts and cancellation.
-- Dynamic cookie-count badge and manifest version shown below the popup brand.
+- Dynamic cookie-count badge and manifest version displayed in both popup and dashboard headers.
+- Discreet GitHub repository links beside the version, opened in a new tab only when clicked; no automatic version checks or network requests.
 
 The popup displays applicable cookies across accessible stores, estimated size and next cleanup. Green badge means explicitly protected, red means cookies without explicit hostname protection, gray means no cookies; internal browser pages have no badge. Conserved shared cookies are distinguished from explicit protection in the dashboard.
 

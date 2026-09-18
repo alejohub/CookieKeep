@@ -184,3 +184,12 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Final full build passed: 47 validated files, 27 matching runtime ZIP entries, manifest.json at root with version 1.1.7. Initial packaging was blocked by an open file; closing it resolved the problem without changing antivirus settings.
 - Updated archive: releases/CookieKeep-v1.1.7-chromium.zip, 39506 bytes; SHA-256 F7F1757FB56503802214D6DB01DF43B72E1862598C1762B9482EA42530B477AC.
 - Normal additional local commit; no push or GitHub Release requested for this UI adjustment.
+
+## CookieKeep 1.1.7 — repository links and release delivery
+
+- Full suite: 177 total, 177 passed, zero failed. Dynamic dashboard version assertions use a mock version different from the manifest; safe explicit links and unchanged permissions/CSP are covered.
+- Disposable-profile Edge smoke passed all existing flows plus version in both headers, keyboard-visible link focus and new-tab navigation for both links. GitHub navigation is intercepted with synthetic content; zero GitHub requests occur before the explicit clicks.
+- Build passed: 48 validated files; 27 matching runtime entries, manifest.json at root with version 1.1.7. The build link validator now distinguishes HTTPS anchor navigation from local runtime assets.
+- Archive: releases/CookieKeep-v1.1.7-chromium.zip, 39785 bytes; SHA-256 8533D01D3322B0E4A4CE6E00B0619216A0B5D9E32669892E77D1945E45B5156C.
+- Runtime ZIP listing excludes repository metadata, tests, dependencies, environment/key files, logs and temporary or personal data. Credential/private-path indicator scan produced no matches; tests and browser checks use synthetic data.
+- Normal commit and non-forced push to main authorized; normal public release targets that commit without overwriting an existing tag/release.

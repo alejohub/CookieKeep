@@ -3,6 +3,7 @@ import {$,bytes,date,request,node,button,perform,previewText} from '../lib/ui.js
 import {createHistoryCache, sortByVisits} from '../lib/history.js';
 import {startCleanupProgress} from '../lib/progress-ui.js';
 import {createCookieList} from '../lib/cookie-list.js';
+$('version').textContent = `v${chrome.runtime.getManifest().version}`;
 let snapshot;
 let visibleDomains=[],bulkBusy=false;
 const progress=startCleanupProgress(active=>{if(snapshot){snapshot.running=active;renderRows();}perform(refresh);});

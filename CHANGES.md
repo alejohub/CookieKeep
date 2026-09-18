@@ -142,3 +142,9 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Popup tagline has an explicit two-line break and remains muted/right-aligned; dynamic version stays below the brand. Unsupported pages no longer show the HTTP/HTTPS badge.
 - Automatic and recent cleanup now have separate bordered cards, side by side on desktop and stacked on narrow screens.
 - Recent actions appear as Dry run, Limpiar selección and Limpiar todo in one desktop row; explanatory copy reflects selected-range versus global cleanup. Existing handlers, protection and confirmations are preserved.
+
+## 1.1.7 — version metadata and repository links
+
+- Added safe new-tab GitHub repository links next to runtime-manifest version metadata in both headers.
+- Shared muted metadata styling includes hover feedback and visible keyboard focus. Popup retains the explicit two-line tagline and hides the unsupported-page badge.
+- No new permissions, CSP relaxation, automatic network requests or version change.
