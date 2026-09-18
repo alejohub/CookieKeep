@@ -1,10 +1,10 @@
 import {isProtected, normalizeHost, applies} from './domains.js';
 import {inRemovalScope, removalDetails, estimateBytes} from './cookies.js';
-export function planCleanup(cookies, whitelist, host = null) {
+export function planCleanup(cookies, whitelist, host = null, eligible = ()=>true) {
   const protectedCookies = cookies.filter(c => isProtected(c, whitelist));
   const remove = [], keep = [];
   for (const c of cookies) {
-    let safe = !isProtected(c, whitelist) && (!host || applies(c, host));
+    let safe = !isProtected(c, whitelist) && (!host || applies(c, host)) && eligible(c);
     try {
       const details = removalDetails(c);
       if (safe && protectedCookies.some(p => inRemovalScope(p, c, details))) safe = false;

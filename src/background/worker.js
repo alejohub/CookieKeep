@@ -1,3 +1,4 @@
+import {createRecentCookies,RECENT_HOURS} from '../lib/recent-cookies.js';
 import {validateSchedule} from '../lib/schedule.js';
 import {watchLastNormalWindow} from '../lib/last-window.js';
 import {normalizeHost, pageHost, applies, isProtected} from '../lib/domains.js';
@@ -9,6 +10,7 @@ import {cleanup} from '../lib/cleanup.js';
 import {createJob} from '../lib/job.js';
 const api = chrome, queue = createQueue(), previews = new Map();
 const ALARM = 'cookiekeep-clean';
+const recentCookies=createRecentCookies(api);
 let running = false,activeAuthorization=null;
 const job=createJob(api,(host,source,options)=>cleanup(api,queue,host,source,options));
 async function ensureAlarm() {
@@ -87,19 +89,23 @@ async function handle(message) {
   }
   if (message.type === 'preview') {
     const host=message.host ? normalizeHost(message.host) : null;
-    const state=await readState(api), plan=planCleanup(await inventory(api),state.whitelist,host);
-    const token=crypto.randomUUID(); previews.set(token,{host,at:Date.now(),authorized:new Set(plan.remove.map(identity))});
+    const hours=message.recentHours??null;if(hours!==null&&!RECENT_HOURS.includes(hours))throw new Error('Intervalo temporal inválido');
+    const state=await readState(api),cookies=await inventory(api),recent=hours===null?null:await recentCookies.eligible(cookies,hours);
+    const plan=planCleanup(cookies,state.whitelist,host,c=>!recent||recent.has(identity(c)));
+    const token=crypto.randomUUID(); previews.set(token,{host,recentHours:hours,at:Date.now(),authorized:new Set(plan.remove.map(identity))});
     for (const [key,p] of previews) if (Date.now()-p.at>600000) previews.delete(key);
     while(previews.size>32)previews.delete(previews.keys().next().value);
-    return {token,...plan.summary,rows:plan.rows};
+    return {token,...plan.summary,rows:plan.rows,recentHours:hours,protectedCookies:cookies.filter(c=>isProtected(c,state.whitelist)).length,temporalExcluded:recent?cookies.length-recent.size:0};
   }
   if(message.type==='clean'){
     const preview=previews.get(message.token);
     if(!preview)throw Object.assign(new Error('Preview inválida'),{code:'PREVIEW_INVALID'});
     if(Date.now()-preview.at>600000)throw Object.assign(new Error('Preview caducada'),{code:'PREVIEW_EXPIRED'});
     const host=message.host?normalizeHost(message.host):null;
-    if(host!==preview.host)throw Object.assign(new Error('Scope distinto'),{code:'PREVIEW_SCOPE'});
-    previews.delete(message.token);return runClean(host,'manual',preview.authorized);
+    if(host!==preview.host || (message.recentHours??null)!==preview.recentHours)throw Object.assign(new Error('Scope distinto'),{code:'PREVIEW_SCOPE'});
+    previews.delete(message.token);
+    if(preview.recentHours!==null){const eligible=await recentCookies.eligible(await inventory(api),preview.recentHours);for(const id of preview.authorized)if(!eligible.has(id))preview.authorized.delete(id);}
+    return runClean(host,'manual',preview.authorized);
   }
   if(message.type==='settings'){
     if(!message.schedule && ![0,1440,4320,10080].includes(message.interval))throw new Error('Intervalo inválido');
@@ -119,7 +125,7 @@ api.runtime.onInstalled.addListener(()=>{queue(ensureAlarm).then(refreshBadges).
 api.tabs.onActivated.addListener(()=>refreshBadges().catch(()=>{}));
 api.tabs.onUpdated.addListener((_id,change)=>{if(change.url || change.status==='complete') refreshBadges().catch(()=>{});});
 let badgeTimer;
-api.cookies.onChanged.addListener(change=>{if(change?.cookie){const id=identity(change.cookie);for(const preview of previews.values())preview.authorized.delete(id);activeAuthorization?.delete(id);}clearTimeout(badgeTimer); badgeTimer=setTimeout(()=>{if(!running)refreshBadges().catch(()=>{});},300);});
+api.cookies.onChanged.addListener(change=>{recentCookies.observe(change);if(change?.cookie){const id=identity(change.cookie);for(const preview of previews.values())preview.authorized.delete(id);activeAuthorization?.delete(id);}clearTimeout(badgeTimer); badgeTimer=setTimeout(()=>{if(!running)refreshBadges().catch(()=>{});},300);});
 queue(ensureAlarm).catch(()=>{});
 
 watchLastNormalWindow(api,async()=>{

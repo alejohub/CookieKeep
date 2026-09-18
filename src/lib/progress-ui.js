@@ -21,7 +21,7 @@ export function startCleanupProgress(onBusyChange=()=>{}){
     }
     $('cancel-cleanup').hidden=!active;
     $('cancel-cleanup').disabled=progress?.state==='cancelling';
-    const clean=$('clean')||$('delete');if(active&&clean)clean.disabled=true;
+    const clean=$('clean')||$('delete');if(active&&clean)clean.disabled=true;if(active&&$('clean-all'))$('clean-all').disabled=true;
     if($('dry'))$('dry').disabled=active;
     if($('settings'))$('settings').disabled=active;
     if(active&&$('dialog-actions'))for(const action of $('dialog-actions').children)if(action.textContent==='Confirmar activación')action.disabled=true;

@@ -1,5 +1,5 @@
 import {scheduleFromValue,scheduleValue,scheduleText} from '../lib/schedule.js';
-import {$,bytes,date,request,node,button,perform,clean,previewText} from '../lib/ui.js';
+import {$,bytes,date,request,node,button,perform,previewText} from '../lib/ui.js';
 import {createHistoryCache, sortByVisits} from '../lib/history.js';
 import {startCleanupProgress} from '../lib/progress-ui.js';
 import {createCookieList} from '../lib/cookie-list.js';
@@ -49,7 +49,17 @@ async function loadRanking() {
   renderRows();
 }
 function showDialog(title,body,actions=[],closeLabel='Cerrar'){$('dialog-title').textContent=title; $('dialog-body').replaceChildren(...body); $('dialog-actions').replaceChildren(...actions,button(closeLabel,()=> $('dialog').close())); $('dialog').showModal();}
-async function preview(){const p=await request('preview'); showDialog('Vista previa de limpieza',[node('p',previewText(p)),node('h3','Dominios afectados'),node('p',p.affectedDomains.join(', ') || 'Ninguno'),node('h3','Sitios en whitelist'),node('p',p.protectedSites.join(', ') || 'Ninguno'),node('h3','Dominios conservados'),node('p',p.keptDomains.join(', ') || 'Ninguno')]);}
+async function dashboardCleanup(all=false,dry=false){
+  const recentHours=all?null:Number($('recent-hours').value)||1;
+  const p=await request('preview',{recentHours});
+  const body=[node('p',previewText(p)),node('p',`${p.protectedCookies??0} cookies protegidas conservadas · ${p.temporalExcluded??0} cookies fuera del intervalo observado o sin metadata fiable.`)];
+  if(!all)body.push(node('p','El intervalo usa cambios observados; Chrome no ofrece fechas de creación.'));
+  const actions=dry?[]:[button(all?'Limpiar todas las no protegidas':'Limpiar cookies recientes',async()=>{
+    $('dialog').close();const r=await request('clean',{token:p.token,host:null,recentHours});await refresh();$('notice').textContent=`Eliminadas: ${r.deleted} · Omitidas: ${r.skipped} · Fallidas: ${r.failed}${r.incomplete?' · Parcial':''}`;
+  },'danger')];
+  showDialog(dry?'Dry run · limpieza reciente':all?'Limpieza completa':'Confirmar limpieza reciente',body,actions,dry?'Cerrar':'Cancelar');
+}
+
 async function details(host){
   const list=createCookieList(host,refresh,()=>snapshot?.running);
   await list.load();
@@ -96,7 +106,7 @@ function renderRows() {
     tr.append(status, actions); $('rows').append(tr);
   }
 }
-async function refresh(){snapshot=await request('snapshot'); $('metrics').replaceChildren();for(const [label,value] of [['Cookies',snapshot.total],['Dominios con cookies',snapshot.rows.filter(r=>r.count).length],['Tamaño total estimado',bytes(snapshot.totalBytes)],['Sitios protegidos',snapshot.state.whitelist.length],['Cookies eliminables',snapshot.preview.remove]]){const card=node('div',undefined,'card');card.append(node('span',label,'muted'),node('div',String(value),'metric'));$('metrics').append(card);}$('interval').value=scheduleValue(snapshot.state); $('next').textContent=scheduleText(snapshot.state,snapshot.nextRun); $('clean').disabled=snapshot.running; $('history').replaceChildren(...snapshot.state.history.map(r=>node('li',`${date(r.at)} · ${r.source==='automatic'?'Automática':'Manual'} · ${r.deleted} cookies · ${r.affectedDomains} dominios · ${bytes(r.approximateBytes)} · ${r.skipped} omitidas · ${r.failed} fallidas${r.incomplete?' · Incompleta':''}`)));if(!snapshot.state.history.length)$('history').append(node('li','Todavía no hay limpiezas.'));renderRows();if(snapshot.progress)progress.render(snapshot.progress);await loadRanking();}
+async function refresh(){snapshot=await request('snapshot'); $('metrics').replaceChildren();for(const [label,value] of [['Cookies',snapshot.total],['Dominios con cookies',snapshot.rows.filter(r=>r.count).length],['Tamaño total estimado',bytes(snapshot.totalBytes)],['Sitios protegidos',snapshot.state.whitelist.length],['Cookies eliminables',snapshot.preview.remove]]){const card=node('div',undefined,'card');card.append(node('span',label,'muted'),node('div',String(value),'metric'));$('metrics').append(card);}$('interval').value=scheduleValue(snapshot.state); $('next').textContent=scheduleText(snapshot.state,snapshot.nextRun); $('clean').disabled=snapshot.running;$('clean-all').disabled=snapshot.running; $('history').replaceChildren(...snapshot.state.history.map(r=>node('li',`${date(r.at)} · ${r.source==='automatic'?'Automática':'Manual'} · ${r.deleted} cookies · ${r.affectedDomains} dominios · ${bytes(r.approximateBytes)} · ${r.skipped} omitidas · ${r.failed} fallidas${r.incomplete?' · Incompleta':''}`)));if(!snapshot.state.history.length)$('history').append(node('li','Todavía no hay limpiezas.'));renderRows();if(snapshot.progress)progress.render(snapshot.progress);await loadRanking();}
 $('protect-list').onclick=()=>{
   const hosts=[...visibleDomains];if(bulkBusy||!hosts.length)return;
   showDialog(hosts.length===1?'¿Proteger este sitio?':`¿Proteger los ${hosts.length} sitios visibles actualmente?`,[
@@ -116,7 +126,7 @@ function saveDashboardPreferences(){
   const preferences={sort:$('sort').value,historyRange:$('history-period').value};
   perform(async()=>{await chrome.storage.local?.set?.({dashboardPreferences:preferences});});
 }
-$('refresh').onclick=()=>perform(async()=>{historyCache.clear();await refresh();},$('refresh'));$('dry').onclick=()=>perform(preview,$('dry'));$('clean').onclick=()=>perform(()=>clean(null,refresh),$('clean'));
+$('refresh').onclick=()=>perform(async()=>{historyCache.clear();await refresh();},$('refresh'));$('dry').onclick=()=>perform(()=>dashboardCleanup(false,true),$('dry'));$('clean').onclick=()=>perform(()=>dashboardCleanup(false,false),$('clean'));$('clean-all').onclick=()=>perform(()=>dashboardCleanup(true,false),$('clean-all'));
 $('settings').onclick=()=>perform(async()=>{
   await request('settings',{schedule:scheduleFromValue($('interval').value)});await refresh();
 },$('settings'));

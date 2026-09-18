@@ -6,15 +6,15 @@ CookieKeep is a Chrome and Edge extension that lets users protect the cookies th
 
 ## Project status and license
 
-Version **1.1.6** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.6-chromium.zip`.
+Version **1.1.7** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.7-chromium.zip`.
 
-All 164 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
+All 174 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
 No LICENSE file is currently present.
 
 ## Install
 
-Download and extract `releases/CookieKeep-v1.1.6-chromium.zip`. The manifest is at the archive root.
+Download and extract `releases/CookieKeep-v1.1.7-chromium.zip`. The manifest is at the archive root.
 
 **Chrome:** open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder containing `manifest.json`.
 
@@ -118,3 +118,9 @@ The worker listens to `chrome.windows.onRemoved`, tracks normal-window IDs in se
 **Proteger listado actual** confirms and protects exactly the domains rendered on the current page after search, filtering, sorting and pagination. **Todas** includes all filtered visible results. Existing whitelist entries are preserved; at most one serialized whitelist write adds missing entries. The table, protected-site metrics and active filters refresh immediately. This action does not delete cookies, request previews or alter cleanup schedules.
 
 The dashboard defaults to **Más visitados / 7 días**. Explicit sort/history-range choices are saved in local `dashboardPreferences` and restored on reopening. History remains optional; opening the dashboard checks permission without prompting, and falls back to A–Z/unavailable counts until access is granted.
+
+### Recent cleanup dashboard
+
+The header contains only Refresh. One cleanup card pairs automatic scheduling with recent cleanup. **Dry run** simulates the selected 1/2/24-hour window; **Limpiar ahora** previews and confirms that window; **Limpiar todo** independently previews all unprotected cookies, ignoring the window. All manual tokens keep their exact host/time scope and authorized intersection, and current protection is revalidated.
+
+Recent eligibility means a creation/update event observed by CookieKeep, not a Chrome-provided creation date. Unknown timestamps are excluded. Session storage contains SHA-256 metadata fingerprints and last-observed timestamps, without cookie values or plaintext names/domains. Tracking begins with observed events, survives worker reactivation when its session checkpoint is available and resets with browser session loss. It does not backdate existing cookies. Automatic cleanup remains current-inventory based. No additional permission is required.

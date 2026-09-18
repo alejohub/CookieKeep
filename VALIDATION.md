@@ -158,3 +158,20 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Build passed: 45 files validated; 26 runtime ZIP entries match sources; root manifest version 1.1.6.
 - Archive: releases/CookieKeep-v1.1.6-chromium.zip, 37618 bytes.
 - SHA-256: C52217EED17C692BEC9273BA51D7F131951B51D806E39648DA8E7CF07EFBDFBF
+
+## Dashboard cleanup reorganization — pending source changes, version unchanged
+
+- Header actions contain only Actualizar. One responsive card has automatic scheduling and recent cleanup columns, with 1/2/24-hour selection, Dry run, Limpiar ahora and separate Limpiar todo.
+- Recent eligibility uses observed cookie-change timestamps only; unknown age is excluded. Session persists metadata SHA-256 fingerprints/timestamps without values or plaintext cookie names/domains. Creation dates are not invented.
+- Temporal preview tokens bind host/time scope; confirmation rechecks temporal eligibility and intersects the original authorized set. Global cleanup ignores the temporal selector, requires its own confirmation and preserves current protection.
+- 174 tests passed, zero failed. Build passed: 47 validated files and 27 matching runtime archive entries.
+- Real disposable-profile Edge smoke passed: header, dry runs at all ranges, recent confirmation, global cancelable confirmation, two-column desktop and narrow stacked layout without overflow, plus prior functionality checks.
+- No new permissions or version change. Published 1.1.6 ZIP restored intact after build validation; no commit/push/release requested for this source-only delivery.
+
+## CookieKeep 1.1.7 — committed dashboard delivery
+
+- Manifest/package and current README references updated to 1.1.7; popup version remains dynamic.
+- Full suite: 174 total, 174 passed, zero failed. Full build passed: 47 validated files, 27 matching runtime entries and root manifest version 1.1.7.
+- Archive: releases/CookieKeep-v1.1.7-chromium.zip, 39467 bytes.
+- SHA-256: 1510945C87493C03EBF4E60E2F9653E80AB4905CD9284902D8ED161C279C6D17
+- Prior published archives retained intact. Local commit requested; no push/release requested in this turn.

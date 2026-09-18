@@ -127,3 +127,12 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Normalize and merge whitelist entries under the existing queue with at most one state write; preserve concurrent popup changes and refresh rows/metrics/filter membership.
 - Default to Más visitados / 7 días and restore explicit local sort/history-range preferences. Optional-history fallback remains usable without prompting on initial load.
 - 164 automated tests passed, zero failed.
+
+## 1.1.7 — dashboard cleanup layout and recent cleanup
+
+- Keep only Refresh in the dashboard header; group automatic scheduling and recent cleanup in one responsive two-column card.
+- Add observed-change 1/2/24-hour Dry run and confirmed recent cleanup, excluding cookies without reliable observed timestamps.
+- Add separate Limpiar todo preview/confirmation for all unprotected cookies, independent of the temporal selector.
+- Bind manual preview tokens to host/time scope, recheck recent eligibility and preserve current whitelist and authorized intersection.
+- Store only metadata fingerprints and observation timestamps in session; no cookie values or invented creation dates. No additional permissions.
+- 174 tests passed, zero failed; real disposable-profile Edge layout/action regressions passed.
