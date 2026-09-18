@@ -119,3 +119,11 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Closing mode displays Próxima limpieza: al cerrar todas las ventanas in both views.
 - Replace mixed generic preview errors with flow-specific configuration/manual/automatic messages, including interrupted automatic jobs.
 - Add token-free mode transition, fresh inventory/protection and manual authorization/expiry regressions.
+
+## 1.1.6 — protect current dashboard list
+
+- Add Proteger listado actual beside dashboard search/filter/sort controls with confirmation and added/already-protected feedback.
+- Use exactly the final rendered collection after pagination; Todas includes all filtered results. Capture that page at confirmation without expanding hidden domains.
+- Normalize and merge whitelist entries under the existing queue with at most one state write; preserve concurrent popup changes and refresh rows/metrics/filter membership.
+- Default to Más visitados / 7 días and restore explicit local sort/history-range preferences. Optional-history fallback remains usable without prompting on initial load.
+- 164 automated tests passed, zero failed.

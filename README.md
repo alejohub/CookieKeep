@@ -6,15 +6,15 @@ CookieKeep is a Chrome and Edge extension that lets users protect the cookies th
 
 ## Project status and license
 
-Version **1.1.5** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.5-chromium.zip`.
+Version **1.1.6** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.6-chromium.zip`.
 
-All 149 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
+All 164 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
 No LICENSE file is currently present.
 
 ## Install
 
-Download and extract `releases/CookieKeep-v1.1.5-chromium.zip`. The manifest is at the archive root.
+Download and extract `releases/CookieKeep-v1.1.6-chromium.zip`. The manifest is at the archive root.
 
 **Chrome:** open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder containing `manifest.json`.
 
@@ -66,7 +66,7 @@ Synthetic benchmark (`node scripts/benchmark.mjs 1000 1`): 1,000 cookies and 1 m
 
 `history` is optional and used only for **Más visitados**. Selecting that sort requests the permission directly from the user gesture; Chrome avoids another prompt if it is already granted. The load checks `permissions.contains`. Refusal leaves the dashboard/cleanup usable with A-Z and unavailable visit counts, explains the permission and offers **Permitir historial** to retry. Revocation clears the in-memory cache and degrades the view.
 
-Periods are rolling 7/30/90 days or all available history; default 30. One global history search is followed by relevant unique URL visit queries, at most six concurrently. Counts use visit timestamps and unique visit IDs, exclude subframes, and include reloads and available synced records. They represent navigation records, not users or sessions. Parent/child row counts can overlap. Empty history means zero; loading/errors use A-Z and unavailable counts, never cookie counts. The 100,000-URL limit or missing timestamps produces partial `≥` counts. URLs are never persisted; aggregates exist only in dashboard memory and are invalidated by refresh/history events.
+Periods are rolling 7/30/90 days or all available history; default 7. One global history search is followed by relevant unique URL visit queries, at most six concurrently. Counts use visit timestamps and unique visit IDs, exclude subframes, and include reloads and available synced records. They represent navigation records, not users or sessions. Parent/child row counts can overlap. Empty history means zero; loading/errors use A-Z and unavailable counts, never cookie counts. The 100,000-URL limit or missing timestamps produces partial `≥` counts. URLs are never persisted; aggregates exist only in dashboard memory and are invalidated by refresh/history events.
 
 ## Privacy and permissions
 
@@ -112,3 +112,9 @@ Click a dashboard domain to open a compact A–Z cookie list with name, path, se
 Both the popup and dashboard expose **Al cerrar todas las ventanas** alongside disabled, 24-hour, 3-day and 7-day schedules. Popup selection saves immediately; the dashboard uses Guardar frecuencia. Saving any automatic mode requires no preview/token and never starts cleanup immediately. One local `cleanupSchedule` object holds `disabled`, `interval` (with minutes), or `lastWindowClosed`; legacy interval settings are migrated on read and saved without a second interval flag. Local storage events synchronize both views. Closing mode shows **Próxima limpieza: al cerrar todas las ventanas**, with no predicted date or interval alarm.
 
 The worker listens to `chrome.windows.onRemoved`, tracks normal-window IDs in session storage, and checks for remaining normal windows. Auxiliary-window and extension-popup closures do not trigger cleanup; duplicate final-removal events and overlapping jobs are ignored. Automatic cleanup reads current cookies/protection and records its aggregate result. `runtime.onSuspend` is not used. If closing all windows also exits the browser process, browser shutdown can interrupt the worker; completion cannot be guaranteed after process exit. An interrupted checkpoint is reported safely when the worker restarts.
+
+### Protect current dashboard list
+
+**Proteger listado actual** confirms and protects exactly the domains rendered on the current page after search, filtering, sorting and pagination. **Todas** includes all filtered visible results. Existing whitelist entries are preserved; at most one serialized whitelist write adds missing entries. The table, protected-site metrics and active filters refresh immediately. This action does not delete cookies, request previews or alter cleanup schedules.
+
+The dashboard defaults to **Más visitados / 7 días**. Explicit sort/history-range choices are saved in local `dashboardPreferences` and restored on reopening. History remains optional; opening the dashboard checks permission without prompting, and falls back to A–Z/unavailable counts until access is granted.

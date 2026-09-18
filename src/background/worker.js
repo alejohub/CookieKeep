@@ -56,6 +56,18 @@ async function handle(message) {
     const relevant = host ? cookies.filter(c=>applies(c,host)) : [];
     return {state,host,siteCount:relevant.length,siteBytes:relevant.reduce((n,c)=>n+estimateBytes(c),0), rows:[...groups.values()],total:cookies.length,totalBytes:cookies.reduce((n,c)=>n+estimateBytes(c),0), preview:planCleanup(cookies,state.whitelist).summary,nextRun:alarm?.scheduledTime,running:progress.state==='running'||progress.state==='cancelling',progress};
   }
+  if(message.type==='protect-list'){
+    if(!Array.isArray(message.hosts)||message.hosts.length>100000)throw new Error('Listado inválido');
+    const hosts=[...new Set(message.hosts.map(normalizeHost))];
+    const result=await queue(async()=>{
+      const state=await readState(api),existing=new Set(state.whitelist);
+      let added=0;for(const host of hosts)if(!existing.has(host)){existing.add(host);added++;}
+      if(added){state.whitelist=[...existing].sort();await saveState(api,state);}
+      return {added,alreadyProtected:hosts.length-added,total:hosts.length};
+    });
+    if(result.added)await refreshBadges().catch(()=>{});
+    return result;
+  }
   if (message.type === 'toggle') {
     const host = normalizeHost(message.host);
     await queue(async()=>{const state=await readState(api); state.whitelist=state.whitelist.includes(host) ? state.whitelist.filter(h=>h!==host) : [...state.whitelist,host].sort(); await saveState(api,state);});
@@ -99,7 +111,7 @@ async function handle(message) {
 }
 api.runtime.onMessage.addListener((message,sender,respond)=>{
   if (sender.id!==api.runtime.id || !sender.url?.startsWith(api.runtime.getURL(''))) return false;
-  handle(message).then(data=>respond({ok:true,data}),error=>respond({ok:false,error:message.type==='settings'?'No se pudo guardar la configuración de limpieza automática.':error.code==='PREVIEW_EXPIRED'?'La vista previa ha caducado. Genera una nueva antes de continuar.':error.code==='PREVIEW_INVALID'?'Genera una vista previa válida antes de limpiar manualmente.':error.code==='PREVIEW_SCOPE'?'La vista previa corresponde a otro sitio. Genera una nueva.':message.type==='clean'?'No se pudo completar la limpieza manual.':message.type==='delete-cookie'?'No se pudo borrar la cookie seleccionada.':'No se pudo completar la operación. Revisa permisos y configuración.'})); return true;
+  handle(message).then(data=>respond({ok:true,data}),error=>respond({ok:false,error:message.type==='protect-list'?'No se pudo proteger el listado actual.':message.type==='settings'?'No se pudo guardar la configuración de limpieza automática.':error.code==='PREVIEW_EXPIRED'?'La vista previa ha caducado. Genera una nueva antes de continuar.':error.code==='PREVIEW_INVALID'?'Genera una vista previa válida antes de limpiar manualmente.':error.code==='PREVIEW_SCOPE'?'La vista previa corresponde a otro sitio. Genera una nueva.':message.type==='clean'?'No se pudo completar la limpieza manual.':message.type==='delete-cookie'?'No se pudo borrar la cookie seleccionada.':'No se pudo completar la operación. Revisa permisos y configuración.'})); return true;
 });
 api.alarms.onAlarm.addListener(alarm=>{if(alarm.name===ALARM) queue(async()=>{const state=await readState(api); if (state.cleanupSchedule.mode!=='interval') return false; state.nextRun=Date.now()+state.cleanupSchedule.interval*60000; await saveState(api,state); return true;}).then(enabled=>enabled && runClean(null,'automatic')).catch(()=>{});});
 api.runtime.onStartup.addListener(()=>{queue(ensureAlarm).then(refreshBadges).catch(()=>{});});

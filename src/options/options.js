@@ -4,6 +4,7 @@ import {createHistoryCache, sortByVisits} from '../lib/history.js';
 import {startCleanupProgress} from '../lib/progress-ui.js';
 import {createCookieList} from '../lib/cookie-list.js';
 let snapshot;
+let visibleDomains=[],bulkBusy=false;
 const progress=startCleanupProgress(active=>{if(snapshot){snapshot.running=active;renderRows();}perform(refresh);});
 let page = 1;
 const historyCache = createHistoryCache({search:args=>chrome.history.search(args),getVisits:args=>chrome.history.getVisits(args)});
@@ -47,7 +48,7 @@ async function loadRanking() {
   }
   renderRows();
 }
-function showDialog(title,body,actions=[]){$('dialog-title').textContent=title; $('dialog-body').replaceChildren(...body); $('dialog-actions').replaceChildren(...actions,button('Cerrar',()=> $('dialog').close())); $('dialog').showModal();}
+function showDialog(title,body,actions=[],closeLabel='Cerrar'){$('dialog-title').textContent=title; $('dialog-body').replaceChildren(...body); $('dialog-actions').replaceChildren(...actions,button(closeLabel,()=> $('dialog').close())); $('dialog').showModal();}
 async function preview(){const p=await request('preview'); showDialog('Vista previa de limpieza',[node('p',previewText(p)),node('h3','Dominios afectados'),node('p',p.affectedDomains.join(', ') || 'Ninguno'),node('h3','Sitios en whitelist'),node('p',p.protectedSites.join(', ') || 'Ninguno'),node('h3','Dominios conservados'),node('p',p.keptDomains.join(', ') || 'Ninguno')]);}
 async function details(host){
   const list=createCookieList(host,refresh,()=>snapshot?.running);
@@ -72,6 +73,8 @@ function renderRows() {
   page = Math.max(1, Math.min(page, pages));
   const start = all ? 0 : (page - 1) * size;
   const visible = all ? rows : rows.slice(start, start + size);
+  visibleDomains=visible.map(row=>row.domain);
+  $('protect-list').disabled=bulkBusy||!visibleDomains.length;
   $('page-status').textContent = `Mostrando ${rows.length ? start + 1 : 0}–${start + visible.length} de ${rows.length} sitios${all ? '' : ` · Página ${page} de ${pages}`}`;
   $('page-prev').disabled = page === 1;
   $('page-next').disabled = page === pages;
@@ -94,6 +97,25 @@ function renderRows() {
   }
 }
 async function refresh(){snapshot=await request('snapshot'); $('metrics').replaceChildren();for(const [label,value] of [['Cookies',snapshot.total],['Dominios con cookies',snapshot.rows.filter(r=>r.count).length],['Tamaño total estimado',bytes(snapshot.totalBytes)],['Sitios protegidos',snapshot.state.whitelist.length],['Cookies eliminables',snapshot.preview.remove]]){const card=node('div',undefined,'card');card.append(node('span',label,'muted'),node('div',String(value),'metric'));$('metrics').append(card);}$('interval').value=scheduleValue(snapshot.state); $('next').textContent=scheduleText(snapshot.state,snapshot.nextRun); $('clean').disabled=snapshot.running; $('history').replaceChildren(...snapshot.state.history.map(r=>node('li',`${date(r.at)} · ${r.source==='automatic'?'Automática':'Manual'} · ${r.deleted} cookies · ${r.affectedDomains} dominios · ${bytes(r.approximateBytes)} · ${r.skipped} omitidas · ${r.failed} fallidas${r.incomplete?' · Incompleta':''}`)));if(!snapshot.state.history.length)$('history').append(node('li','Todavía no hay limpiezas.'));renderRows();if(snapshot.progress)progress.render(snapshot.progress);await loadRanking();}
+$('protect-list').onclick=()=>{
+  const hosts=[...visibleDomains];if(bulkBusy||!hosts.length)return;
+  showDialog(hosts.length===1?'¿Proteger este sitio?':`¿Proteger los ${hosts.length} sitios visibles actualmente?`,[
+    node('p','Se añadirán a la lista de sitios protegidos todos los dominios que aparecen en esta página con los filtros actuales.')
+  ],[button('Proteger sitios',async()=>{
+    if(bulkBusy)return;bulkBusy=true;renderRows();
+    try{const result=await request('protect-list',{hosts});$('dialog').close();await refresh();$('notice').textContent=`${result.added} sitios añadidos · ${result.alreadyProtected} ya estaban protegidos.`;}
+    finally{bulkBusy=false;renderRows();}
+  })],'Cancelar');
+};
+async function loadDashboardPreferences(){
+  if(!$('sort').value)$('sort').value='visits';if(!$('history-period').value)$('history-period').value='7';
+  let saved;try{saved=(await chrome.storage.local?.get?.('dashboardPreferences'))?.dashboardPreferences;}catch{return;}
+  if(saved){if(['count','bytes','domain','visits'].includes(saved.sort))$('sort').value=saved.sort;if(['7','30','90','all'].includes(String(saved.historyRange)))$('history-period').value=String(saved.historyRange);}
+}
+function saveDashboardPreferences(){
+  const preferences={sort:$('sort').value,historyRange:$('history-period').value};
+  perform(async()=>{await chrome.storage.local?.set?.({dashboardPreferences:preferences});});
+}
 $('refresh').onclick=()=>perform(async()=>{historyCache.clear();await refresh();},$('refresh'));$('dry').onclick=()=>perform(preview,$('dry'));$('clean').onclick=()=>perform(()=>clean(null,refresh),$('clean'));
 $('settings').onclick=()=>perform(async()=>{
   await request('settings',{schedule:scheduleFromValue($('interval').value)});await refresh();
@@ -101,8 +123,8 @@ $('settings').onclick=()=>perform(async()=>{
 for(const id of ['search','filter','page-size']) $(id).addEventListener('input',()=>{page=1;if(snapshot)renderRows();});
 $('page-prev').onclick=()=>{page--;renderRows();};
 $('page-next').onclick=()=>{page++;renderRows();};
-$('sort').addEventListener('input',()=>{if (!snapshot) return; page=1;rankingRequest++; renderRows(); if ($('sort').value==='visits') requestRankingPermission();});
-$('history-period').addEventListener('input',()=>perform(loadRanking));
+$('sort').addEventListener('input',()=>{saveDashboardPreferences();if (!snapshot) return; page=1;rankingRequest++; renderRows(); if ($('sort').value==='visits') requestRankingPermission();});
+$('history-period').addEventListener('input',()=>{saveDashboardPreferences();perform(loadRanking);});
 function invalidateHistory() {
   historyCache.clear(); rankingRequest++; ranking={phase:'loading'};
   if (snapshot) renderRows();
@@ -120,4 +142,4 @@ function requestRankingPermission(){
 $('history-permission').onclick=requestRankingPermission;
 chrome.permissions.onRemoved.addListener(removed=>{if(!removed.permissions?.includes('history'))return;historyCache.clear();rankingRequest++;ranking={phase:'permission'};if(snapshot)renderRows();});
 chrome.storage.onChanged.addListener((_change,area)=>{if(area==='local'){perform(refresh);}});
-perform(refresh);
+perform(async()=>{await loadDashboardPreferences();await refresh();});

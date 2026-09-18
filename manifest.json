@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CookieKeep",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Protege sitios con un clic y limpia las cookies no protegidas, localmente.",
   "minimum_chrome_version": "130",
   "permissions": [

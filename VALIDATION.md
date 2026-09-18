@@ -148,3 +148,13 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Build passed: 43 validated files, 26 matching runtime ZIP entries; manifest remains 1.1.5 at root.
 - Regenerated archive: releases/CookieKeep-v1.1.5-chromium.zip, 36872 bytes.
 - SHA-256: 4E5B2A2CB090D43D8E9E11AD1FA37CB52085BD2B85574381E73150B80A51C0CD
+
+## CookieKeep 1.1.6 — current dashboard list protection
+
+- Default controls: Más visitados / 7 días; saved explicit dashboardPreferences sort/historyRange restored. History permission remains optional with clean A–Z fallback.
+- Confirmed bulk protection uses the exact post-filter/sort/pagination rendered domain collection. Todas includes filtered results only. Serialized worker union preserves existing/concurrent whitelist entries with one write when new domains exist, zero if unchanged; no cookie deletion, cleanup preview or schedule changes.
+- Full suite: 164 total, 164 passed, zero failed. Covers 0/1/50/100/all, 1050 rows, page 2, search/filters, periods, duplicates, one-write behavior, preference restoration and concurrent popup changes.
+- Real disposable-profile Edge smoke passed: defaults, filtered visible-page protection, immediate filter update, Todas and preference restoration, plus previous cleanup/security/UI checks. Initial smoke ordering was corrected to choose a visit period before hiding that control under byte sorting; no remaining failures.
+- Build passed: 45 files validated; 26 runtime ZIP entries match sources; root manifest version 1.1.6.
+- Archive: releases/CookieKeep-v1.1.6-chromium.zip, 37618 bytes.
+- SHA-256: C52217EED17C692BEC9273BA51D7F131951B51D806E39648DA8E7CF07EFBDFBF

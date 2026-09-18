@@ -106,3 +106,9 @@ In a disposable profile, choose Al cerrar todas las ventanas in the popup and ve
 Create two normal windows and synthetic cookies. Closing the extension popup or an auxiliary window must not add a cleanup record. Closing one normal window must not clean while another remains. Protect a synthetic site after scheduling, then close the final normal window while keeping the browser process running in the background. Only unprotected current cookies may be removed; exactly one aggregate automatic record should be added. Repeat after worker stop/reactivation to exercise the session normal-ID cache. Browser process exit can interrupt cleanup; do not claim completion after the browser has terminated.
 
 Automated UI smoke verifies real Edge selector persistence and bidirectional synchronization. Node tests cover normal/auxiliary events, worker restart, duplicate removal, active-job exclusion and current protection.
+
+## CookieKeep 1.1.6 — current-list protection
+
+On a new disposable-profile dashboard, verify Más visitados / 7 días and the 7-day heading. Without history permission the dashboard must remain usable with A–Z/unavailable counts and the existing optional-permission control, without an automatic prompt. Change sort/range and reopen: the saved explicit choice must remain.
+
+Seed synthetic domains, filter/search to a subset, and record exactly the rendered domain names. Proteger listado actual must confirm that count and protect only that page. Under No protegidos those rows must disappear immediately and protected-site metrics must change. Repeat on page 2, 100 rows, and Todas; never include hidden pages/search results. Cancel confirmation must make no changes. Already protected entries remain protected, with added/already-protected feedback. Node tests verify at most one whitelist write and serialization with popup changes; real Edge smoke checks filtered-page protection, Todas, defaults and preference restoration.
