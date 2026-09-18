@@ -128,3 +128,14 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Archive: releases/CookieKeep-v1.1.5-chromium.zip, 35021 bytes.
 - SHA-256: 9CEEC6E71C309A9430EBC6D0F3A4601A79CAA594DDE5D399D60CE4AD9B8B116C
 - No GitHub Release requested for this delivery. Prior versioned archives and commit history preserved.
+
+## CookieKeep 1.1.5 — visible last-window cleanup completion
+
+- Shared cleanupSchedule persisted with disabled/interval/lastWindowClosed modes; legacy interval state migrated. Popup and dashboard expose all five modes and share closing-mode text with no next-run date.
+- windows.onRemoved detects the final normal window; auxiliary/extension-popup closure, remaining normal windows, duplicate removal and active jobs are excluded. Session contains normal IDs only for worker reactivation, no URLs.
+- 146 tests total, 146 passed, zero failed. Tests cover both UI handlers/persistence/shared changes, migration, closing events, whitelist, history, worker restart and active-job exclusion.
+- Disposable-profile real Edge smoke passed: visible closing-mode selectors, persistent shared state and bidirectional popup/dashboard synchronization, plus previous cleanup/security/UI regressions.
+- Build passed: 43 validated files and 26 matching runtime ZIP entries; root manifest remains 1.1.5.
+- Regenerated releases/CookieKeep-v1.1.5-chromium.zip: 37164 bytes.
+- SHA-256: 2F08BD8A8F4B6264DA695A6684549014614C797EF17C3E6C38957594C47CC6B2
+- Browser process exit may interrupt worker cleanup; no runtime.onSuspend mechanism or guarantee after process exit.

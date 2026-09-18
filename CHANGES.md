@@ -102,3 +102,12 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Version the completed compact site-cookie inspector and dashboard updates as 1.1.5.
 - Update manifest/package metadata and current distribution references; popup version remains manifest-driven.
 - Include a verified Chromium ZIP alongside source. Preserve earlier versioned archives and commit history.
+
+### 1.1.5 completion — last normal window cleanup
+
+- Add visible Al cerrar todas las ventanas selection in popup and dashboard, alongside all interval modes.
+- Use one cleanupSchedule object; migrate legacy interval state and synchronize both views through local storage events.
+- Show closing-mode text without a date; remove interval alarms in closing/disabled modes.
+- Listen to windows.onRemoved and check remaining normal windows; ignore auxiliary/popup closures, repeated removal events and overlapping jobs.
+- Restore normal-window IDs from session storage across worker restarts without storing URLs; reuse current-inventory/protection cleanup and aggregate history.
+- 146 tests passed; real disposable-profile Edge UI persistence and bidirectional synchronization passed. Browser process exit may interrupt cleanup.

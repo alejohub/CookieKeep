@@ -34,3 +34,5 @@ dialog[open]{display:flex;flex-direction:column;overflow:hidden}
 .cookie-row button{font-size:12px;padding:7px 10px}
 .cookie-detail{background:#f4f7f6;border-radius:8px;padding:12px;margin:12px 0 0}
 @media(max-width:650px){.cookie-row-line{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cookie-row .actions{grid-column:1 / -1}.cookie-row-line strong{grid-column:1 / -1}}
+.popup .card label[for="interval"]{display:block;margin-bottom:8px}
+.popup .card select{width:100%}

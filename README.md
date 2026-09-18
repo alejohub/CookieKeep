@@ -8,7 +8,7 @@ CookieKeep is a Chrome and Edge extension that lets users protect the cookies th
 
 Version **1.1.5** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.5-chromium.zip`.
 
-All 138 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
+All 146 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
 No LICENSE file is currently present.
 
@@ -106,3 +106,9 @@ Cleanup progress is shown only while running or cancelling. Terminal results rem
 ### Site cookie inspector
 
 Click a dashboard domain to open a compact A–Z cookie list with name, path, session/persistent type and approximate size. **Ver** expands metadata for that cookie only; values are never displayed. **Borrar** requires confirmation and authorizes exactly one cookie identity through the existing safe cleanup engine. Protected cookies and selectors that could affect another cookie are blocked. Successful deletion refreshes the list, dashboard counts/sizes and aggregate cleanup history. The modal body scrolls while its title and Close button remain accessible.
+
+### Cleanup when the last normal window closes
+
+Both the popup and dashboard expose **Al cerrar todas las ventanas** alongside disabled, 24-hour, 3-day and 7-day schedules. Popup selection saves after preview confirmation; the dashboard uses its existing save/confirmation flow. One local `cleanupSchedule` object holds `disabled`, `interval` (with minutes), or `lastWindowClosed`; legacy interval settings are migrated on read and saved without a second interval flag. Local storage events synchronize both views. Closing mode shows **Se limpiará al cerrar todas las ventanas.**, with no predicted date or interval alarm.
+
+The worker listens to `chrome.windows.onRemoved`, tracks normal-window IDs in session storage, and checks for remaining normal windows. Auxiliary-window and extension-popup closures do not trigger cleanup; duplicate final-removal events and overlapping jobs are ignored. Automatic cleanup reads current cookies/protection and records its aggregate result. `runtime.onSuspend` is not used. If closing all windows also exits the browser process, browser shutdown can interrupt the worker; completion cannot be guaranteed after process exit. An interrupted checkpoint is reported safely when the worker restarts.

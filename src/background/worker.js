@@ -1,3 +1,5 @@
+import {validateSchedule} from '../lib/schedule.js';
+import {watchLastNormalWindow} from '../lib/last-window.js';
 import {normalizeHost, pageHost, applies, isProtected} from '../lib/domains.js';
 import {estimateBytes, metadata, identity} from '../lib/cookies.js';
 import {inventory} from '../lib/compat.js';
@@ -11,10 +13,10 @@ let running = false,activeAuthorization=null;
 const job=createJob(api,(host,source,options)=>cleanup(api,queue,host,source,options));
 async function ensureAlarm() {
   const state = await readState(api);
-  if (!state.interval) { await api.alarms.clear(ALARM); return; }
+  if (state.cleanupSchedule.mode!=='interval') { await api.alarms.clear(ALARM); return; }
   const alarm = await api.alarms.get(ALARM);
-  if (!alarm || alarm.periodInMinutes !== state.interval) {
-    await api.alarms.create(ALARM, {when:Math.max(Date.now()+30000,state.nextRun || Date.now()+state.interval*60000), periodInMinutes:state.interval});
+  if (!alarm || alarm.periodInMinutes !== state.cleanupSchedule.interval) {
+    await api.alarms.create(ALARM, {when:Math.max(Date.now()+30000,state.nextRun || Date.now()+state.cleanupSchedule.interval*60000), periodInMinutes:state.cleanupSchedule.interval});
   }
 }
 async function refreshBadges() {
@@ -81,7 +83,9 @@ async function handle(message) {
   }
   if (message.type === 'clean' || message.type === 'settings') {
     const preview=previews.get(message.token);
-    if (message.type==='clean' || message.interval!==0) {
+    if(message.type==='settings' && !message.schedule && ![0,1440,4320,10080].includes(message.interval))throw new Error('Intervalo inválido');
+    const schedule=message.type==='settings'?validateSchedule(message.schedule??(message.interval?{mode:'interval',interval:message.interval}:{mode:'disabled'})):null;
+    if (message.type==='clean' || schedule.mode!=='disabled') {
       if (!preview || Date.now()-preview.at>600000 || (message.type==='settings' && preview.host)) throw new Error('Haz una nueva vista previa antes de continuar');
     }
     if (message.type==='clean') {
@@ -89,8 +93,8 @@ async function handle(message) {
       if(host!==preview.host)throw new Error('Scope de preview distinto');
       previews.delete(message.token); return runClean(host,'manual',preview.authorized);
     }
-    if (![0,1440,4320,10080].includes(message.interval)) throw new Error('Intervalo inválido');
-    await queue(async()=>{const state=await readState(api); state.interval=message.interval; state.nextRun=message.interval ? Date.now()+message.interval*60000 : null; await saveState(api,state); await api.alarms.clear(ALARM); await ensureAlarm();});
+
+    await queue(async()=>{const state=await readState(api); state.cleanupSchedule=schedule; state.nextRun=schedule.mode==='interval' ? Date.now()+schedule.interval*60000 : null; await saveState(api,state); await api.alarms.clear(ALARM); await ensureAlarm();});
     previews.delete(message.token); return true;
   }
   throw new Error('Acción desconocida');
@@ -99,7 +103,7 @@ api.runtime.onMessage.addListener((message,sender,respond)=>{
   if (sender.id!==api.runtime.id || !sender.url?.startsWith(api.runtime.getURL(''))) return false;
   handle(message).then(data=>respond({ok:true,data}),()=>respond({ok:false,error:'No se pudo completar la operación. Revisa permisos/configuración; vuelve a generar la vista previa si ha caducado. La limpieza se bloquea ante datos inseguros.'})); return true;
 });
-api.alarms.onAlarm.addListener(alarm=>{if(alarm.name===ALARM) queue(async()=>{const state=await readState(api); if (!state.interval) return false; state.nextRun=Date.now()+state.interval*60000; await saveState(api,state); return true;}).then(enabled=>enabled && runClean(null,'automatic')).catch(()=>{});});
+api.alarms.onAlarm.addListener(alarm=>{if(alarm.name===ALARM) queue(async()=>{const state=await readState(api); if (state.cleanupSchedule.mode!=='interval') return false; state.nextRun=Date.now()+state.cleanupSchedule.interval*60000; await saveState(api,state); return true;}).then(enabled=>enabled && runClean(null,'automatic')).catch(()=>{});});
 api.runtime.onStartup.addListener(()=>{queue(ensureAlarm).then(refreshBadges).catch(()=>{});});
 api.runtime.onInstalled.addListener(()=>{queue(ensureAlarm).then(refreshBadges).catch(()=>{});});
 api.tabs.onActivated.addListener(()=>refreshBadges().catch(()=>{}));
@@ -107,3 +111,8 @@ api.tabs.onUpdated.addListener((_id,change)=>{if(change.url || change.status==='
 let badgeTimer;
 api.cookies.onChanged.addListener(change=>{if(change?.cookie){const id=identity(change.cookie);for(const preview of previews.values())preview.authorized.delete(id);activeAuthorization?.delete(id);}clearTimeout(badgeTimer); badgeTimer=setTimeout(()=>{if(!running)refreshBadges().catch(()=>{});},300);});
 queue(ensureAlarm).catch(()=>{});
+
+watchLastNormalWindow(api,async()=>{
+  const [state,windows]=await Promise.all([readState(api),api.windows.getAll({windowTypes:['normal']})]);
+  if(state.cleanupSchedule.mode==='lastWindowClosed' && !windows.some(w=>w.type==='normal') && !running)await runClean(null,'automatic');
+});

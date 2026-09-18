@@ -1,4 +1,4 @@
-# Disposable-browser acceptance for CookieKeep 1.1.3
+# Disposable-browser acceptance for CookieKeep 1.1.5
 
 Never use a real browsing profile for these destructive tests. Create a new Chrome/Edge profile with no sign-in/sync, password manager, personal tabs, imported history or other extensions. Load this repository unpacked. Delete that disposable profile after testing using the browser's profile controls.
 
@@ -98,3 +98,11 @@ Record browser version, OS, fixture sizes, aggregate result, elapsed time, obser
 ## 1.1.3 progress completion regression
 
 The automated smoke also verifies completion with popup and dashboard open: both progress containers become hidden and have zero layout height. Reloading either view after completion keeps progress hidden. Cancellation keeps the partial result in the notice while hiding the progress block. Only running/cancelling states show progress; terminal states stop UI polling.
+
+## Last normal window cleanup
+
+In a disposable profile, choose Al cerrar todas las ventanas in the popup and accept its preview confirmation. Confirm the dashboard select/text change without reload. Save an interval from the dashboard and verify the popup changes, then save closing mode again. No dated next-run text or interval alarm should remain in closing mode.
+
+Create two normal windows and synthetic cookies. Closing the extension popup or an auxiliary window must not add a cleanup record. Closing one normal window must not clean while another remains. Protect a synthetic site after scheduling, then close the final normal window while keeping the browser process running in the background. Only unprotected current cookies may be removed; exactly one aggregate automatic record should be added. Repeat after worker stop/reactivation to exercise the session normal-ID cache. Browser process exit can interrupt cleanup; do not claim completion after the browser has terminated.
+
+Automated UI smoke verifies real Edge selector persistence and bidirectional synchronization. Node tests cover normal/auxiliary events, worker restart, duplicate removal, active-job exclusion and current protection.

@@ -1,3 +1,4 @@
+import {scheduleFromValue,scheduleValue,scheduleText} from '../lib/schedule.js';
 import {$,bytes,date,request,node,button,perform,clean,previewText} from '../lib/ui.js';
 import {createHistoryCache, sortByVisits} from '../lib/history.js';
 import {startCleanupProgress} from '../lib/progress-ui.js';
@@ -93,17 +94,17 @@ function renderRows() {
     tr.append(status, actions); $('rows').append(tr);
   }
 }
-async function refresh(){snapshot=await request('snapshot'); $('metrics').replaceChildren();for(const [label,value] of [['Cookies',snapshot.total],['Dominios con cookies',snapshot.rows.filter(r=>r.count).length],['Tamaño total estimado',bytes(snapshot.totalBytes)],['Sitios protegidos',snapshot.state.whitelist.length],['Cookies eliminables',snapshot.preview.remove]]){const card=node('div',undefined,'card');card.append(node('span',label,'muted'),node('div',String(value),'metric'));$('metrics').append(card);}$('interval').value=snapshot.state.interval; $('next').textContent=`Próxima limpieza: ${date(snapshot.nextRun)}`; $('clean').disabled=snapshot.running; $('history').replaceChildren(...snapshot.state.history.map(r=>node('li',`${date(r.at)} · ${r.source==='automatic'?'Automática':'Manual'} · ${r.deleted} cookies · ${r.affectedDomains} dominios · ${bytes(r.approximateBytes)} · ${r.skipped} omitidas · ${r.failed} fallidas${r.incomplete?' · Incompleta':''}`)));if(!snapshot.state.history.length)$('history').append(node('li','Todavía no hay limpiezas.'));renderRows();if(snapshot.progress)progress.render(snapshot.progress);await loadRanking();}
+async function refresh(){snapshot=await request('snapshot'); $('metrics').replaceChildren();for(const [label,value] of [['Cookies',snapshot.total],['Dominios con cookies',snapshot.rows.filter(r=>r.count).length],['Tamaño total estimado',bytes(snapshot.totalBytes)],['Sitios protegidos',snapshot.state.whitelist.length],['Cookies eliminables',snapshot.preview.remove]]){const card=node('div',undefined,'card');card.append(node('span',label,'muted'),node('div',String(value),'metric'));$('metrics').append(card);}$('interval').value=scheduleValue(snapshot.state); $('next').textContent=scheduleText(snapshot.state,snapshot.nextRun); $('clean').disabled=snapshot.running; $('history').replaceChildren(...snapshot.state.history.map(r=>node('li',`${date(r.at)} · ${r.source==='automatic'?'Automática':'Manual'} · ${r.deleted} cookies · ${r.affectedDomains} dominios · ${bytes(r.approximateBytes)} · ${r.skipped} omitidas · ${r.failed} fallidas${r.incomplete?' · Incompleta':''}`)));if(!snapshot.state.history.length)$('history').append(node('li','Todavía no hay limpiezas.'));renderRows();if(snapshot.progress)progress.render(snapshot.progress);await loadRanking();}
 $('refresh').onclick=()=>perform(async()=>{historyCache.clear();await refresh();},$('refresh'));$('dry').onclick=()=>perform(preview,$('dry'));$('clean').onclick=()=>perform(()=>clean(null,refresh),$('clean'));
 $('settings').onclick=()=>perform(async()=>{
-  const interval=Number($('interval').value);
-  if(!interval){await request('settings',{interval});await refresh();return;}
+  const schedule=scheduleFromValue($('interval').value);
+  if(schedule.mode==='disabled'){await request('settings',{schedule});await refresh();return;}
   const p=await request('preview'), summary=node('p',previewText(p));
   const link=node('a','Ver qué se eliminará','link');
   link.href=chrome.runtime.getURL('src/options/preview.html'); link.target='_blank'; link.rel='noopener';
   const activation={token:p.token,summary};
   showDialog('Activar limpieza automática',[summary,link],[button('Confirmar activación',async()=>{
-    await request('settings',{interval,token:activation.token});
+    await request('settings',{schedule,token:activation.token});
     activationPreview=null; $('dialog').close(); await refresh();
   })]);
   activationPreview=activation;
