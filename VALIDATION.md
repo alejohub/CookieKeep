@@ -175,3 +175,12 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Archive: releases/CookieKeep-v1.1.7-chromium.zip, 39467 bytes.
 - SHA-256: 1510945C87493C03EBF4E60E2F9653E80AB4905CD9284902D8ED161C279C6D17
 - Prior published archives retained intact. Local commit requested; no push/release requested in this turn.
+
+## CookieKeep 1.1.7 — popup/dashboard UI polish
+
+- Full suite: 174 total, 174 passed, zero failed. Popup assertions cover explicit line break, dynamic version and hidden/empty status on unsupported pages; dashboard assertions cover separate cards and ordered renamed actions.
+- Real disposable-profile Edge smoke passed: two-line right-aligned tagline, independent card borders/padding, all three actions in one desktop row, stacked narrow layout without overflow and existing recent/global cleanup and synchronization checks.
+- Browser validation caught CSS overriding the status hidden attribute; a scoped hidden rule fixed it and the complete browser check passed on rerun.
+- Final full build passed: 47 validated files, 27 matching runtime ZIP entries, manifest.json at root with version 1.1.7. Initial packaging was blocked by an open file; closing it resolved the problem without changing antivirus settings.
+- Updated archive: releases/CookieKeep-v1.1.7-chromium.zip, 39506 bytes; SHA-256 F7F1757FB56503802214D6DB01DF43B72E1862598C1762B9482EA42530B477AC.
+- Normal additional local commit; no push or GitHub Release requested for this UI adjustment.

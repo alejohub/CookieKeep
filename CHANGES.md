@@ -136,3 +136,9 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Bind manual preview tokens to host/time scope, recheck recent eligibility and preserve current whitelist and authorized intersection.
 - Store only metadata fingerprints and observation timestamps in session; no cookie values or invented creation dates. No additional permissions.
 - 174 tests passed, zero failed; real disposable-profile Edge layout/action regressions passed.
+
+## 1.1.7 — popup and dashboard UI polish
+
+- Popup tagline has an explicit two-line break and remains muted/right-aligned; dynamic version stays below the brand. Unsupported pages no longer show the HTTP/HTTPS badge.
+- Automatic and recent cleanup now have separate bordered cards, side by side on desktop and stacked on narrow screens.
+- Recent actions appear as Dry run, Limpiar selección and Limpiar todo in one desktop row; explanatory copy reflects selected-range versus global cleanup. Existing handlers, protection and confirmations are preserved.

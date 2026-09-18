@@ -121,6 +121,6 @@ The dashboard defaults to **Más visitados / 7 días**. Explicit sort/history-ra
 
 ### Recent cleanup dashboard
 
-The header contains only Refresh. One cleanup card pairs automatic scheduling with recent cleanup. **Dry run** simulates the selected 1/2/24-hour window; **Limpiar ahora** previews and confirms that window; **Limpiar todo** independently previews all unprotected cookies, ignoring the window. All manual tokens keep their exact host/time scope and authorized intersection, and current protection is revalidated.
+The header contains only Refresh. Two independent cleanup cards separate automatic scheduling from recent cleanup. **Dry run** simulates the selected 1/2/24-hour window; **Limpiar selección** previews and confirms that window; **Limpiar todo** independently previews all unprotected cookies, ignoring the window. All manual tokens keep their exact host/time scope and authorized intersection, and current protection is revalidated.
 
 Recent eligibility means a creation/update event observed by CookieKeep, not a Chrome-provided creation date. Unknown timestamps are excluded. Session storage contains SHA-256 metadata fingerprints and last-observed timestamps, without cookie values or plaintext names/domains. Tracking begins with observed events, survives worker reactivation when its session checkpoint is available and resets with browser session loss. It does not backdate existing cookies. Automatic cleanup remains current-inventory based. No additional permission is required.

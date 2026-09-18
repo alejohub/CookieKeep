@@ -36,11 +36,14 @@ dialog[open]{display:flex;flex-direction:column;overflow:hidden}
 @media(max-width:650px){.cookie-row-line{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cookie-row .actions{grid-column:1 / -1}.cookie-row-line strong{grid-column:1 / -1}}
 .popup .card label[for="interval"]{display:block;margin-bottom:8px}
 .popup .card select{width:100%}
+.popup .status[hidden]{display:none}
 .popup .popup-tagline{max-width:180px;text-align:right;line-height:1.2}
-.cleanup-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+.cleanup-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+.cleanup-columns>.card{margin:0}
+.cleanup-manual-actions button{padding:8px 10px;font-size:13px;white-space:nowrap}
 .cleanup-column{min-width:0}
 .cleanup-column>h2{margin-top:0}
 .cleanup-column>.actions{margin:14px 0}
 .cleanup-column select{max-width:100%}
 .cleanup-column label[for="recent-hours"]{display:block;font-size:12px;color:#657779;margin-bottom:8px}
-@media(max-width:700px){.cleanup-columns{grid-template-columns:minmax(0,1fr);gap:24px}.cleanup-column .actions>*{max-width:100%}}
+@media(max-width:900px){.cleanup-columns{grid-template-columns:minmax(0,1fr);gap:24px}.cleanup-column .actions>*{max-width:100%}}
