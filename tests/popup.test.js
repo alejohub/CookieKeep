@@ -5,6 +5,9 @@ import {readFile} from 'node:fs/promises';
 const markup=await readFile(new URL('../src/popup/index.html',import.meta.url),'utf8');
 class Element {constructor(){this.textContent='';this.disabled=false;}}
 
+assert.match(markup,/<span class="muted popup-tagline">Protege lo importante\. Limpia el resto\.<\/span>/);
+assert.ok(!/Só?lo en tu navegador/.test(markup));
+
 test('popup reads version from the runtime manifest without changing snapshot or dashboard actions',async()=>{
   for(const version of ['9.8.7','2.3.4.5']){
     const elements=new Map([...markup.matchAll(/id="([^"]+)"/g)].map(match=>[match[1],new Element()]));

@@ -36,3 +36,4 @@ dialog[open]{display:flex;flex-direction:column;overflow:hidden}
 @media(max-width:650px){.cookie-row-line{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cookie-row .actions{grid-column:1 / -1}.cookie-row-line strong{grid-column:1 / -1}}
 .popup .card label[for="interval"]{display:block;margin-bottom:8px}
 .popup .card select{width:100%}
+.popup .popup-tagline{max-width:180px;text-align:right;line-height:1.2}
