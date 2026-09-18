@@ -1,5 +1,5 @@
 import {scheduleFromValue,scheduleValue,scheduleText} from '../lib/schedule.js';
-import {$,bytes,date,request,perform,clean,previewText} from '../lib/ui.js';
+import {$,bytes,date,request,perform,clean} from '../lib/ui.js';
 $('version').textContent = `v${chrome.runtime.getManifest().version}`;
 import {startCleanupProgress} from '../lib/progress-ui.js';
 let host;
@@ -11,8 +11,6 @@ $('dashboard').onclick=()=>chrome.runtime.openOptionsPage();
 perform(refresh);
 
 $('interval').onchange=()=>perform(async()=>{
-  const schedule=scheduleFromValue($('interval').value);let token;
-  if(schedule.mode!=='disabled'){const p=await request('preview');if(!confirm(previewText(p)+'\n\n¿Activar esta limpieza automática?')){await refresh();return;}token=p.token;}
-  await request('settings',{schedule,token});await refresh();
+  await request('settings',{schedule:scheduleFromValue($('interval').value)});await refresh();
 },$('interval'));
 chrome.storage?.onChanged?.addListener((_changes,area)=>{if(area==='local')perform(refresh);});

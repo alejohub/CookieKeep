@@ -8,7 +8,7 @@ CookieKeep is a Chrome and Edge extension that lets users protect the cookies th
 
 Version **1.1.5** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.5-chromium.zip`.
 
-All 146 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
+All 149 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
 No LICENSE file is currently present.
 
@@ -44,7 +44,7 @@ Identity includes store ID, name, domain, path, hostOnly, Secure, HttpOnly, Same
 
 The API exposes no creation ID or atomic get/remove transaction. A same-metadata replacement cannot be distinguished by identity alone; change events reduce this risk but cannot eliminate an external mutation in the final API race window. CookieKeep therefore does not claim an absolute guarantee against every browser/site race.
 
-Automatic cleanup does not reuse a scheduled preview list. It builds candidates when the alarm executes and rechecks current protection during each batch. A cookie created after scheduling is considered at execution; cookies created after that run's initial inventory wait for a subsequent run rather than silently expanding that run's selector.
+Automatic cleanup does not reuse a scheduled preview list. It builds candidates when the alarm or last-window event executes and rechecks current protection during each batch. A cookie created after scheduling is considered at execution; cookies created after that run's initial inventory wait for a subsequent run rather than silently expanding that run's selector.
 
 ## Protection and precise removal scope
 
@@ -109,6 +109,6 @@ Click a dashboard domain to open a compact A–Z cookie list with name, path, se
 
 ### Cleanup when the last normal window closes
 
-Both the popup and dashboard expose **Al cerrar todas las ventanas** alongside disabled, 24-hour, 3-day and 7-day schedules. Popup selection saves after preview confirmation; the dashboard uses its existing save/confirmation flow. One local `cleanupSchedule` object holds `disabled`, `interval` (with minutes), or `lastWindowClosed`; legacy interval settings are migrated on read and saved without a second interval flag. Local storage events synchronize both views. Closing mode shows **Se limpiará al cerrar todas las ventanas.**, with no predicted date or interval alarm.
+Both the popup and dashboard expose **Al cerrar todas las ventanas** alongside disabled, 24-hour, 3-day and 7-day schedules. Popup selection saves immediately; the dashboard uses Guardar frecuencia. Saving any automatic mode requires no preview/token and never starts cleanup immediately. One local `cleanupSchedule` object holds `disabled`, `interval` (with minutes), or `lastWindowClosed`; legacy interval settings are migrated on read and saved without a second interval flag. Local storage events synchronize both views. Closing mode shows **Próxima limpieza: al cerrar todas las ventanas**, with no predicted date or interval alarm.
 
 The worker listens to `chrome.windows.onRemoved`, tracks normal-window IDs in session storage, and checks for remaining normal windows. Auxiliary-window and extension-popup closures do not trigger cleanup; duplicate final-removal events and overlapping jobs are ignored. Automatic cleanup reads current cookies/protection and records its aggregate result. `runtime.onSuspend` is not used. If closing all windows also exits the browser process, browser shutdown can interrupt the worker; completion cannot be guaranteed after process exit. An interrupted checkpoint is reported safely when the worker restarts.

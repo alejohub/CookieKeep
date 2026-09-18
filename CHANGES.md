@@ -111,3 +111,11 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Listen to windows.onRemoved and check remaining normal windows; ignore auxiliary/popup closures, repeated removal events and overlapping jobs.
 - Restore normal-window IDs from session storage across worker restarts without storing URLs; reuse current-inventory/protection cleanup and aggregate history.
 - 146 tests passed; real disposable-profile Edge UI persistence and bidirectional synchronization passed. Browser process exit may interrupt cleanup.
+
+### 1.1.5 fix — automatic settings independent of manual previews
+
+- Split settings from confirmed manual cleanup: automatic mode saves never read, validate or consume preview tokens and never delete cookies immediately.
+- Popup and dashboard save automatic schedules directly; manual preview expiry, scope and authorization remain enforced.
+- Closing mode displays Próxima limpieza: al cerrar todas las ventanas in both views.
+- Replace mixed generic preview errors with flow-specific configuration/manual/automatic messages, including interrupted automatic jobs.
+- Add token-free mode transition, fresh inventory/protection and manual authorization/expiry regressions.

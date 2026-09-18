@@ -139,3 +139,12 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Regenerated releases/CookieKeep-v1.1.5-chromium.zip: 37164 bytes.
 - SHA-256: 2F08BD8A8F4B6264DA695A6684549014614C797EF17C3E6C38957594C47CC6B2
 - Browser process exit may interrupt worker cleanup; no runtime.onSuspend mechanism or guarantee after process exit.
+
+## CookieKeep 1.1.5 — automatic settings token-dependency fix
+
+- Settings no longer read/validate/consume manual previews; popup and dashboard save schedules directly without token or immediate deletion. Manual confirmed cleanup still enforces preview validity, expiry, scope and authorized identities.
+- 149 tests total, 149 passed, zero failed; includes all mode transitions, fresh automatic inventory/protection, no immediate cleanup, no manual-token consumption and flow-specific errors.
+- Real disposable-profile Edge UI smoke passed without preview confirmation for settings, including bidirectional synchronization.
+- Build passed: 43 validated files, 26 matching runtime ZIP entries; manifest remains 1.1.5 at root.
+- Regenerated archive: releases/CookieKeep-v1.1.5-chromium.zip, 36872 bytes.
+- SHA-256: 4E5B2A2CB090D43D8E9E11AD1FA37CB52085BD2B85574381E73150B80A51C0CD

@@ -6,7 +6,6 @@ import {createCookieList} from '../lib/cookie-list.js';
 let snapshot;
 const progress=startCleanupProgress(active=>{if(snapshot){snapshot.running=active;renderRows();}perform(refresh);});
 let page = 1;
-let activationPreview = null;
 const historyCache = createHistoryCache({search:args=>chrome.history.search(args),getVisits:args=>chrome.history.getVisits(args)});
 let historyListening=false;
 let ranking = {phase: 'idle'}, rankingRequest = 0, historyTimer;
@@ -97,26 +96,8 @@ function renderRows() {
 async function refresh(){snapshot=await request('snapshot'); $('metrics').replaceChildren();for(const [label,value] of [['Cookies',snapshot.total],['Dominios con cookies',snapshot.rows.filter(r=>r.count).length],['Tamaño total estimado',bytes(snapshot.totalBytes)],['Sitios protegidos',snapshot.state.whitelist.length],['Cookies eliminables',snapshot.preview.remove]]){const card=node('div',undefined,'card');card.append(node('span',label,'muted'),node('div',String(value),'metric'));$('metrics').append(card);}$('interval').value=scheduleValue(snapshot.state); $('next').textContent=scheduleText(snapshot.state,snapshot.nextRun); $('clean').disabled=snapshot.running; $('history').replaceChildren(...snapshot.state.history.map(r=>node('li',`${date(r.at)} · ${r.source==='automatic'?'Automática':'Manual'} · ${r.deleted} cookies · ${r.affectedDomains} dominios · ${bytes(r.approximateBytes)} · ${r.skipped} omitidas · ${r.failed} fallidas${r.incomplete?' · Incompleta':''}`)));if(!snapshot.state.history.length)$('history').append(node('li','Todavía no hay limpiezas.'));renderRows();if(snapshot.progress)progress.render(snapshot.progress);await loadRanking();}
 $('refresh').onclick=()=>perform(async()=>{historyCache.clear();await refresh();},$('refresh'));$('dry').onclick=()=>perform(preview,$('dry'));$('clean').onclick=()=>perform(()=>clean(null,refresh),$('clean'));
 $('settings').onclick=()=>perform(async()=>{
-  const schedule=scheduleFromValue($('interval').value);
-  if(schedule.mode==='disabled'){await request('settings',{schedule});await refresh();return;}
-  const p=await request('preview'), summary=node('p',previewText(p));
-  const link=node('a','Ver qué se eliminará','link');
-  link.href=chrome.runtime.getURL('src/options/preview.html'); link.target='_blank'; link.rel='noopener';
-  const activation={token:p.token,summary};
-  showDialog('Activar limpieza automática',[summary,link],[button('Confirmar activación',async()=>{
-    await request('settings',{schedule,token:activation.token});
-    activationPreview=null; $('dialog').close(); await refresh();
-  })]);
-  activationPreview=activation;
+  await request('settings',{schedule:scheduleFromValue($('interval').value)});await refresh();
 },$('settings'));
-$('dialog').addEventListener('close',()=>{activationPreview=null;});
-async function refreshActivationPreview() {
-  const current=activationPreview;
-  if (!current || !$('dialog').open) return;
-  const p=await request('preview');
-  if (current!==activationPreview || !$('dialog').open) return;
-  current.summary.textContent=previewText(p); current.token=p.token;
-}
 for(const id of ['search','filter','page-size']) $(id).addEventListener('input',()=>{page=1;if(snapshot)renderRows();});
 $('page-prev').onclick=()=>{page--;renderRows();};
 $('page-next').onclick=()=>{page++;renderRows();};
@@ -138,5 +119,5 @@ function requestRankingPermission(){
 }
 $('history-permission').onclick=requestRankingPermission;
 chrome.permissions.onRemoved.addListener(removed=>{if(!removed.permissions?.includes('history'))return;historyCache.clear();rankingRequest++;ranking={phase:'permission'};if(snapshot)renderRows();});
-chrome.storage.onChanged.addListener((_change,area)=>{if(area==='local'){perform(refresh);perform(refreshActivationPreview);}});
+chrome.storage.onChanged.addListener((_change,area)=>{if(area==='local'){perform(refresh);}});
 perform(refresh);

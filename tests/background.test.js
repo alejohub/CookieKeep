@@ -10,7 +10,7 @@ await import('../src/background/worker.js');
 const send=message=>new Promise(resolve=>listener(message,{id:'test',url:'chrome-extension://test/src/options/index.html'},resolve));
 test('workflow background: snapshot, un clic, preview, activación y reinicio de alarma',async()=>{
   let response=await send({type:'snapshot'});assert.equal(response.ok,true);assert.equal(response.data.siteCount,1);assert.equal(response.data.host,'www.example.com');assert.ok(!JSON.stringify(response).includes('NEVER_EXPOSE'));
-  response=await send({type:'settings',interval:1440});assert.equal(response.ok,false);assert.equal(state.cleanupSchedule.mode,'disabled');
+  response=await send({type:'settings',interval:1440});assert.equal(response.ok,true);assert.equal(state.cleanupSchedule.interval,1440);
   assert.equal((await send({type:'toggle',host:'www.example.com'})).ok,true);assert.deepEqual(state.whitelist,['www.example.com']);assert.ok(badges.some(b=>b.color==='#16805d'));
   response=await send({type:'details',host:'example.com'});assert.equal(response.data[0].value,undefined);assert.equal(response.data[0].name,'session');
   response=await send({type:'preview'});assert.equal(response.data.remove,0);assert.equal(response.data.keep,1);

@@ -101,7 +101,7 @@ The automated smoke also verifies completion with popup and dashboard open: both
 
 ## Last normal window cleanup
 
-In a disposable profile, choose Al cerrar todas las ventanas in the popup and accept its preview confirmation. Confirm the dashboard select/text change without reload. Save an interval from the dashboard and verify the popup changes, then save closing mode again. No dated next-run text or interval alarm should remain in closing mode.
+In a disposable profile, choose Al cerrar todas las ventanas in the popup and verify it saves without a preview/token or immediate cleanup. Confirm the dashboard select/text change without reload. Save an interval from the dashboard and verify the popup changes, then save closing mode again. No dated next-run text or interval alarm should remain in closing mode.
 
 Create two normal windows and synthetic cookies. Closing the extension popup or an auxiliary window must not add a cleanup record. Closing one normal window must not clean while another remains. Protect a synthetic site after scheduling, then close the final normal window while keeping the browser process running in the background. Only unprotected current cookies may be removed; exactly one aggregate automatic record should be added. Repeat after worker stop/reactivation to exercise the session normal-ID cache. Browser process exit can interrupt cleanup; do not claim completion after the browser has terminated.
 

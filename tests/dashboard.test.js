@@ -20,10 +20,10 @@ get('sort').value='count';get('filter').value='all';get('history-period').value=
 let queries=0, fail=false, erased=false;
 let dashboardRows=[{domain:'z.test',count:500,bytes:1000,protectedCookies:0},{domain:'a.test',count:1,bytes:100,protectedCookies:0}];
 let dashboardWhitelist=[], historyRows=null,historyGranted=true,grantResult=true,permissionRequests=0;
-const historyEvents={};
+const historyEvents={};const dashboardMessages=[];
 const now=Date.now(), day=86400000;
 globalThis.chrome={
-  runtime:{getURL:path=>`chrome-extension://test/${path}`,sendMessage:async message=>({ok:true,data:message.type==='preview' ? {token:'preview-token',remove:501,keep:0,affectedDomains:['a.test','z.test'],keptDomains:[],protectedSites:[],approximateBytes:1100,rows:[]} : {rows:dashboardRows,state:{whitelist:dashboardWhitelist,history:[],interval:0},total:501,totalBytes:1100,preview:{remove:501},running:false}})},
+  runtime:{getURL:path=>`chrome-extension://test/${path}`,sendMessage:async message=>(dashboardMessages.push(message),{ok:true,data:message.type==='preview' ? {token:'preview-token',remove:501,keep:0,affectedDomains:['a.test','z.test'],keptDomains:[],protectedSites:[],approximateBytes:1100,rows:[]} : {rows:dashboardRows,state:{whitelist:dashboardWhitelist,history:[],interval:0},total:501,totalBytes:1100,preview:{remove:501},running:false}})},
   storage:{onChanged:{addListener(){}}},
   permissions:{contains:async()=>historyGranted,request:async()=>{permissionRequests++;historyGranted=grantResult;return grantResult;},onRemoved:{addListener(fn){historyEvents.permissionRemoved=fn;}}},
   history:{search:async()=>{queries++;if(fail)throw new Error('denied');if(historyRows)return historyRows;return erased?[]:[{url:'https://a.test/page'},{url:'https://z.test/page'}];},getVisits:async({url})=>historyRows ? Array.from({length:Number(new URL(url).hostname.slice(4,8))%5+1},(_,i)=>({visitId:`${url}-${i}`,visitTime:now-day,transition:'link'})) : url.includes('a.test')?[{visitId:'1',visitTime:now-day,transition:'link'},{visitId:'2',visitTime:now-15*day,transition:'reload'}]:[{visitId:'3',visitTime:now-day,transition:'link'}],onVisited:{addListener(fn){historyEvents.visited=fn;}},onVisitRemoved:{addListener(fn){historyEvents.removed=fn;}}}
@@ -48,14 +48,9 @@ test('dashboard: periodo default, columna condicional, caché, cambio de periodo
   await until(()=>get('ranking-status').textContent.includes('Datos consultados'));
   assert.deepEqual(rowVisits(),['0 visitas','0 visitas']);
 });
-test('activación automática muestra solo agregados y link a pestaña separada',async()=>{
-  get('interval').value='4320';get('settings').onclick();
-  await until(()=>get('dialog').open===true);
-  const body=get('dialog-body').children;
-  assert.equal(body.length,2);assert.ok(body[0].textContent.includes('501 cookies'));
-  assert.ok(!body[0].textContent.includes('a.test'));assert.ok(!body[0].textContent.includes('z.test'));
-  assert.equal(body[1].tagName,'a');assert.equal(body[1].textContent,'Ver qué se eliminará');
-  assert.equal(body[1].target,'_blank');assert.equal(body[1].href,'chrome-extension://test/src/options/preview.html');
+test('automatic settings save without preview, token or immediate cleaning',async()=>{
+ const before=dashboardMessages.length;get('interval').value='4320';await get('settings').onclick();
+ const calls=dashboardMessages.slice(before);assert.ok(calls.some(m=>m.type==='settings'&&m.schedule.interval===4320&&!m.token));assert.ok(!calls.some(m=>m.type==='preview'||m.type==='clean'));
 });
 
 test('dashboard pagination: sizes, boundaries, filtering, sorting and shrinking inventory',async()=>{

@@ -17,7 +17,7 @@ export function createJob(api,run){
       await ready;
       if(ACTIVE.has(current.state))throw new Error('Ya hay una limpieza en curso');
       controller=new AbortController();
-      current={state:'running',total:authorized?.size??0,processed:0,deleted:0,failed:0,skipped:0,skippedProtected:0,percent:0,startedAt:Date.now(),duration:0};
+      current={state:'running',source,total:authorized?.size??0,processed:0,deleted:0,failed:0,skipped:0,skippedProtected:0,percent:0,startedAt:Date.now(),duration:0};
       try{
         await persist(true);
         const result=await run(host,source,{authorized,signal:controller.signal,onProgress:async progress=>{current={...current,...progress,state:controller.signal.aborted?'cancelling':'running'};await persist();}});

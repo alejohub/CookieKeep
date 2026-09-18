@@ -59,13 +59,13 @@ try{
  await reopened.reload();await reopened.waitForFunction(()=>document.querySelector('#version').textContent.startsWith('v'));assert.ok(await reopened.locator('#cleanup-progress').isHidden());
  await dashboard.reload();assert.ok(await dashboard.locator('#cleanup-progress').isHidden());
  // All pages belong to this disposable profile.
- reopened.once('dialog',dialog=>dialog.accept());await reopened.selectOption('#interval','lastWindowClosed');
- await reopened.waitForFunction(()=>document.querySelector('#next').textContent==='Se limpiará al cerrar todas las ventanas.');
- await dashboard.waitForFunction(()=>document.querySelector('#interval').value==='lastWindowClosed' && document.querySelector('#next').textContent==='Se limpiará al cerrar todas las ventanas.');
- await dashboard.selectOption('#interval','4320');await dashboard.click('#settings');await dashboard.getByRole('button',{name:'Confirmar activación',exact:true}).click();
+ await reopened.selectOption('#interval','lastWindowClosed');
+ await reopened.waitForFunction(()=>document.querySelector('#next').textContent==='Próxima limpieza: al cerrar todas las ventanas');
+ await dashboard.waitForFunction(()=>document.querySelector('#interval').value==='lastWindowClosed' && document.querySelector('#next').textContent==='Próxima limpieza: al cerrar todas las ventanas');
+ await dashboard.selectOption('#interval','4320');await dashboard.click('#settings');
  await reopened.waitForFunction(()=>document.querySelector('#interval').value==='4320');
- await dashboard.selectOption('#interval','lastWindowClosed');await dashboard.click('#settings');await dashboard.getByRole('button',{name:'Confirmar activación',exact:true}).click();
- await reopened.waitForFunction(()=>document.querySelector('#interval').value==='lastWindowClosed' && document.querySelector('#next').textContent==='Se limpiará al cerrar todas las ventanas.');
+ await dashboard.selectOption('#interval','lastWindowClosed');await dashboard.click('#settings');
+ await reopened.waitForFunction(()=>document.querySelector('#interval').value==='lastWindowClosed' && document.querySelector('#next').textContent==='Próxima limpieza: al cerrar todas las ventanas');
  const stored=await reopened.evaluate(async()=> (await chrome.storage.local.get('state')).state);assert.deepEqual(stored.cleanupSchedule,{mode:'lastWindowClosed'});assert.equal('interval' in stored,false);
  const manifest=JSON.parse(await readFile('manifest.json','utf8'));assert.equal(await reopened.locator('#version').textContent(),`v${manifest.version}`);assert.deepEqual(errors,[]);
  console.log(JSON.stringify({browser:'Real headless Edge extension',version:manifest.version,profile:'disposable temporary profile',checks:['unrelated name collision','manual A+B intersection','Domain parent collateral','new same-name path collateral','CHIPS protection/removal','progress after closing initiating UI','real cancellation partial result','completion hides progress in both open pages with zero layout height','terminal reload stays hidden','compact site-cookie list with selected metadata and safe individual deletion','protected cookie action disabled','visible last-window selection and shared persistence','bidirectional popup/dashboard schedule synchronization','native CSP/manifest loading'],passed:true}));

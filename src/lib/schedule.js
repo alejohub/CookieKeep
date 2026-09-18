@@ -8,4 +8,4 @@ export function validateSchedule(schedule){
 export function scheduleOf(state){return validateSchedule(state.cleanupSchedule??(state.interval?{mode:'interval',interval:state.interval}:{mode:'disabled'}));}
 export function scheduleFromValue(value){return validateSchedule(value==='lastWindowClosed'?{mode:value}:Number(value)?{mode:'interval',interval:Number(value)}:{mode:'disabled'});}
 export const scheduleValue=state=>{const s=scheduleOf(state);return s.mode==='interval'?String(s.interval):s.mode==='lastWindowClosed'?s.mode:'0';};
-export function scheduleText(state,nextRun){const s=scheduleOf(state);return s.mode==='lastWindowClosed'?'Se limpiará al cerrar todas las ventanas.':s.mode==='disabled'?'Limpieza automática desactivada.':`Próxima limpieza: ${date(nextRun)}`;}
+export function scheduleText(state,nextRun){const s=scheduleOf(state);return s.mode==='lastWindowClosed'?'Próxima limpieza: al cerrar todas las ventanas':s.mode==='disabled'?'Limpieza automática desactivada.':`Próxima limpieza: ${date(nextRun)}`;}

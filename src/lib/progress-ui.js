@@ -16,7 +16,7 @@ export function startCleanupProgress(onBusyChange=()=>{}){
       $('cleanup-progress-label').textContent='';
       $('cleanup-progress-bar').value=0;
       $('cleanup-progress-stats').textContent='';
-      if(progress?.state==='failed')$('notice').textContent=progress.interrupted?'Limpieza interrumpida al reiniciar el servicio. Genera una nueva vista previa.':'No se pudo completar la limpieza.';
+      if(progress?.state==='failed')$('notice').textContent=progress.interrupted?(progress.source==='automatic'?'Limpieza automática interrumpida al reiniciar el servicio.':'Limpieza manual interrumpida al reiniciar el servicio. Genera una nueva vista previa.'):progress.source==='automatic'?'No se pudo completar la limpieza automática.':'No se pudo completar la limpieza manual.';
       else if(progress?.cancelled || progress?.state==='cancelled')$('notice').textContent=`Limpieza cancelada · resumen parcial: ${progress.deleted??0} eliminadas · ${progress.skipped??0} omitidas · ${progress.failed??0} fallidas.`;
     }
     $('cancel-cleanup').hidden=!active;
