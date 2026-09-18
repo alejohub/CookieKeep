@@ -6,7 +6,7 @@ CookieKeep is a Chrome and Edge extension that lets users protect the cookies th
 
 ## Project status and license
 
-Version **1.1.4** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.4-chromium.zip`.
+Version **1.1.5** fixes two cleanup-policy findings from the 1.1.1 audit and adds bounded deletion, progress, cancellation, optional history and CSP hardening. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.5-chromium.zip`.
 
 All 138 Node tests pass. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
@@ -14,7 +14,7 @@ No LICENSE file is currently present.
 
 ## Install
 
-Download and extract `releases/CookieKeep-v1.1.4-chromium.zip`. The manifest is at the archive root.
+Download and extract `releases/CookieKeep-v1.1.5-chromium.zip`. The manifest is at the archive root.
 
 **Chrome:** open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder containing `manifest.json`.
 

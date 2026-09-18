@@ -119,3 +119,12 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Archive: releases/CookieKeep-v1.1.4-chromium.zip, 35021 bytes.
 - SHA-256: D712EF3444F48E920577BBB6250F18F489317AD002170304B4C68982F459E923
 - Reviewed tracked/untracked delivery files and secret patterns; no sensitive material found. Previous published ZIPs retained unchanged.
+
+## CookieKeep 1.1.5 — final delivery
+
+- Completed site-cookie inspector/dashboard changes retained from 1.1.4; manifest/package/current README distribution references updated to 1.1.5.
+- Full suite: 138 total, 138 passed, zero failed.
+- Full build passed: 39 files validated; 24 runtime archive entries matched source bytes; manifest.json at root, version 1.1.5.
+- Archive: releases/CookieKeep-v1.1.5-chromium.zip, 35021 bytes.
+- SHA-256: 9CEEC6E71C309A9430EBC6D0F3A4601A79CAA594DDE5D399D60CE4AD9B8B116C
+- No GitHub Release requested for this delivery. Prior versioned archives and commit history preserved.

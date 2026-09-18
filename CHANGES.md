@@ -96,3 +96,9 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Refresh cookie rows, dashboard counts/sizes and aggregate history after deletion.
 - Keep modal title/Close accessible with responsive rows and internal scrolling.
 - 138 tests passed, zero failed; real disposable-profile Edge inspector and cleanup smoke passed.
+
+## 1.1.5 — versioned delivery
+
+- Version the completed compact site-cookie inspector and dashboard updates as 1.1.5.
+- Update manifest/package metadata and current distribution references; popup version remains manifest-driven.
+- Include a verified Chromium ZIP alongside source. Preserve earlier versioned archives and commit history.
