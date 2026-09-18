@@ -20,3 +20,17 @@
 .cleanup-progress progress{display:block;width:100%;height:10px;margin-top:12px;accent-color:#13775b}
 .cleanup-progress p{margin:10px 0;line-height:1.6}
 .cleanup-progress[hidden]{display:none}
+/* Site cookie inspector: only expanded metadata scrolls with the list. */
+dialog[open]{display:flex;flex-direction:column;overflow:hidden}
+#dialog-body{overflow:auto;min-height:0}
+#dialog-title,#dialog-actions{flex-shrink:0}
+.cookie-list>p{margin:0 0 12px}
+.cookie-list .notice:empty{display:none}
+.cookie-row{border-bottom:1px solid #edf2ef;padding:12px 0}
+.cookie-row:last-child{border-bottom:0}
+.cookie-row-line{display:grid;grid-template-columns:minmax(120px,2fr) minmax(70px,1fr) 90px 110px auto;align-items:center;gap:12px}
+.cookie-row-line strong,.cookie-path{overflow-wrap:anywhere}
+.cookie-row .actions{justify-content:flex-end;flex-wrap:nowrap}
+.cookie-row button{font-size:12px;padding:7px 10px}
+.cookie-detail{background:#f4f7f6;border-radius:8px;padding:12px;margin:12px 0 0}
+@media(max-width:650px){.cookie-row-line{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cookie-row .actions{grid-column:1 / -1}.cookie-row-line strong{grid-column:1 / -1}}

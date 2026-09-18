@@ -1,6 +1,7 @@
 import {$,bytes,date,request,node,button,perform,clean,previewText} from '../lib/ui.js';
 import {createHistoryCache, sortByVisits} from '../lib/history.js';
 import {startCleanupProgress} from '../lib/progress-ui.js';
+import {createCookieList} from '../lib/cookie-list.js';
 let snapshot;
 const progress=startCleanupProgress(active=>{if(snapshot){snapshot.running=active;renderRows();}perform(refresh);});
 let page = 1;
@@ -48,7 +49,11 @@ async function loadRanking() {
 }
 function showDialog(title,body,actions=[]){$('dialog-title').textContent=title; $('dialog-body').replaceChildren(...body); $('dialog-actions').replaceChildren(...actions,button('Cerrar',()=> $('dialog').close())); $('dialog').showModal();}
 async function preview(){const p=await request('preview'); showDialog('Vista previa de limpieza',[node('p',previewText(p)),node('h3','Dominios afectados'),node('p',p.affectedDomains.join(', ') || 'Ninguno'),node('h3','Sitios en whitelist'),node('p',p.protectedSites.join(', ') || 'Ninguno'),node('h3','Dominios conservados'),node('p',p.keptDomains.join(', ') || 'Ninguno')]);}
-async function details(host){const cookies=await request('details',{host}); const body=[node('p','Se muestran metadatos. Los valores nunca se envían a esta interfaz.')]; for(const c of cookies){const card=node('section',undefined,'card'); card.append(node('h3',c.name || '(nombre vacío)'),node('pre',JSON.stringify({...c,expirationDate:c.expirationDate ? date(c.expirationDate*1000) : 'Sesión',approximateBytes:bytes(c.approximateBytes)},null,2)));body.push(card);}if(!cookies.length)body.push(node('p','Este dominio no tiene cookies.'));showDialog(host,body);}
+async function details(host){
+  const list=createCookieList(host,refresh,()=>snapshot?.running);
+  await list.load();
+  showDialog(host,[list.element]);
+}
 function renderRows() {
   rankingControls();
   const search = $('search').value.toLowerCase(), filter = $('filter').value, sort = $('sort').value;

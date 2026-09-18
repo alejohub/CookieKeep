@@ -87,3 +87,12 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Stop polling at terminal states. Session checkpoints wake the UI for subsequent jobs; pagehide removes the listener and timer.
 - Added state, completion, reload and timer/listener regressions: 121 tests passed, zero failed.
 - Real disposable-profile Edge validation confirms completion hides progress in both open pages with zero layout height, and terminal reload remains hidden.
+
+## 1.1.4 — compact site cookie inspector
+
+- Replace full cookie metadata cards with a compact name-sorted list showing path, session/persistent type and approximate size.
+- Expand metadata for a single cookie with Ver; cookie values remain hidden.
+- Confirm individual deletion and authorize exactly one identity through the safe cleanup engine, including store/CHIPS handling and current whitelist checks. Ambiguous collateral is blocked.
+- Refresh cookie rows, dashboard counts/sizes and aggregate history after deletion.
+- Keep modal title/Close accessible with responsive rows and internal scrolling.
+- 138 tests passed, zero failed; real disposable-profile Edge inspector and cleanup smoke passed.

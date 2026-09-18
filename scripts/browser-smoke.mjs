@@ -19,6 +19,16 @@ try{
  const p=await send({type:'preview',host:'tracker.test'});assert.equal(p.remove,1);
  await set({...base,name:'ck_qa_new',url:'http://tracker.test/'});
  const result=await send({type:'clean',host:'tracker.test',token:p.token});assert.equal(result.deleted,1);assert.ok((await get('protected.test')).some(c=>c.name==='ck_qa_sid'));assert.deepEqual((await get('tracker.test')).map(c=>c.name),['ck_qa_new']);
+ await page.click('#refresh');
+ await page.getByRole('button',{name:'tracker.test',exact:true}).click();
+ assert.equal(await page.locator('.cookie-row').count(),1);
+ assert.ok(await page.locator('.cookie-detail').isHidden());
+ await page.locator('.cookie-row').getByRole('button',{name:'Ver',exact:true}).click();
+ const detail=await page.locator('.cookie-detail').textContent();assert.ok(detail.includes('ck_qa_new'));assert.ok(!detail.includes('SYNTHETIC_QA_ONLY'));assert.ok(!detail.includes('"value"'));
+ page.once('dialog',dialog=>dialog.accept());await page.locator('.cookie-row').getByRole('button',{name:'Borrar',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('.cookie-list-rows').textContent.includes('Este dominio no tiene cookies.'));
+ assert.equal((await get('tracker.test')).length,0);await page.getByRole('button',{name:'Cerrar',exact:true}).click();
+ await page.getByRole('button',{name:'protected.test',exact:true}).click();assert.ok(await page.locator('.cookie-row').getByRole('button',{name:'Borrar',exact:true}).isDisabled());await page.getByRole('button',{name:'Cerrar',exact:true}).click();
  await set({...base,url:'http://example.test/',domain:'.example.test'});await set({...base,url:'http://sub.example.test/'});await send({type:'toggle',host:'example.test'});
  assert.equal((await send({type:'preview',host:'sub.example.test'})).remove,0);
  await set({...base,name:'ck_qa_path',url:'https://paths.test/account',path:'/account',secure:true});
@@ -49,5 +59,5 @@ try{
  await reopened.reload();await reopened.waitForFunction(()=>document.querySelector('#version').textContent.startsWith('v'));assert.ok(await reopened.locator('#cleanup-progress').isHidden());
  await dashboard.reload();assert.ok(await dashboard.locator('#cleanup-progress').isHidden());
  const manifest=JSON.parse(await readFile('manifest.json','utf8'));assert.equal(await reopened.locator('#version').textContent(),`v${manifest.version}`);assert.deepEqual(errors,[]);
- console.log(JSON.stringify({browser:'Real headless Edge extension',version:manifest.version,profile:'disposable temporary profile',checks:['unrelated name collision','manual A+B intersection','Domain parent collateral','new same-name path collateral','CHIPS protection/removal','progress after closing initiating UI','real cancellation partial result','completion hides progress in both open pages with zero layout height','terminal reload stays hidden','native CSP/manifest loading'],passed:true}));
+ console.log(JSON.stringify({browser:'Real headless Edge extension',version:manifest.version,profile:'disposable temporary profile',checks:['unrelated name collision','manual A+B intersection','Domain parent collateral','new same-name path collateral','CHIPS protection/removal','progress after closing initiating UI','real cancellation partial result','completion hides progress in both open pages with zero layout height','terminal reload stays hidden','compact site-cookie list with selected metadata and safe individual deletion','protected cookie action disabled','native CSP/manifest loading'],passed:true}));
 }finally{await context?.close();}

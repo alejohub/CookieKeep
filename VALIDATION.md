@@ -104,3 +104,18 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Real Edge extension smoke passed using a disposable profile and synthetic cookies. Completion hides progress in both open pages with zero layout height; reload remains hidden. Cancellation still reports a partial result.
 - Archive: releases/CookieKeep-v1.1.3-chromium.zip, 33168 bytes.
 - SHA-256: D6B58FD978576C907EF74DB36E8C7D73D095ADAF64A60C3C32CEB6865006A1E6
+
+## Site cookie inspector — unreleased source changes
+
+- 138 tests passed, zero failed. Added compact-list, single-cookie metadata, no-value rendering, confirmation, exact identity/store/CHIPS deletion, missing targets, protected targets, ambiguous collateral and API-error regressions.
+- Full build passed: 39 files validated and 24 runtime archive entries matched sources.
+- Disposable-profile real Edge smoke passed, including selected metadata, individual deletion and protected action disabled, plus existing cleanup/progress security checks.
+- The published 1.1.3 ZIP was restored after build validation; its original SHA-256 remains D6B58FD978576C907EF74DB36E8C7D73D095ADAF64A60C3C32CEB6865006A1E6. No new version, commit or release was requested for this task.
+
+## CookieKeep 1.1.4 — versioned delivery
+
+- Manifest/package updated from 1.1.3 to 1.1.4; popup version remains dynamic.
+- 138 tests passed, zero failed; full build passed (39 validated files, 24 matching runtime archive entries, root manifest version 1.1.4).
+- Archive: releases/CookieKeep-v1.1.4-chromium.zip, 35021 bytes.
+- SHA-256: D712EF3444F48E920577BBB6250F18F489317AD002170304B4C68982F459E923
+- Reviewed tracked/untracked delivery files and secret patterns; no sensitive material found. Previous published ZIPs retained unchanged.

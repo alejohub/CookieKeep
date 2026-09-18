@@ -59,7 +59,18 @@ async function handle(message) {
     await queue(async()=>{const state=await readState(api); state.whitelist=state.whitelist.includes(host) ? state.whitelist.filter(h=>h!==host) : [...state.whitelist,host].sort(); await saveState(api,state);});
     await refreshBadges(); return true;
   }
-  if (message.type === 'details') return (await inventory(api)).filter(c=>normalizeHost(c.domain)===normalizeHost(message.host)).map(metadata);
+  if (message.type === 'details') {
+    const host=normalizeHost(message.host),state=await readState(api);
+    return (await inventory(api)).filter(c=>normalizeHost(c.domain)===host).map(c=>({...metadata(c),protected:isProtected(c,state.whitelist)}));
+  }
+  if(message.type==='delete-cookie'){
+    const host=normalizeHost(message.host);
+    if(typeof message.id!=='string' || message.id.length>8192)throw new Error('Cookie inválida');
+    const current=(await inventory(api)).find(c=>identity(c)===message.id);
+    if(!current)return {deleted:0,missing:true};
+    if(normalizeHost(current.domain)!==host)throw new Error('Dominio distinto');
+    return runClean(host,'manual',new Set([message.id]));
+  }
   if (message.type === 'preview') {
     const host=message.host ? normalizeHost(message.host) : null;
     const state=await readState(api), plan=planCleanup(await inventory(api),state.whitelist,host);
