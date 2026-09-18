@@ -2,7 +2,7 @@ import {scheduleFromValue,scheduleValue,scheduleText} from '../lib/schedule.js';
 import {$,bytes,date,request,node,button,perform,previewText} from '../lib/ui.js';
 import {createHistoryCache, sortByVisits} from '../lib/history.js';
 import {startCleanupProgress} from '../lib/progress-ui.js';
-import {createCookieList} from '../lib/cookie-list.js';
+import {createCookieList,createPreviewDetails} from '../lib/cookie-list.js';
 $('version').textContent = `v${chrome.runtime.getManifest().version}`;
 let snapshot;
 let visibleDomains=[],bulkBusy=false;
@@ -49,7 +49,7 @@ async function loadRanking() {
   }
   renderRows();
 }
-function showDialog(title,body,actions=[],closeLabel='Cerrar'){$('dialog-title').textContent=title; $('dialog-body').replaceChildren(...body); $('dialog-actions').replaceChildren(...actions,button(closeLabel,()=> $('dialog').close())); $('dialog').showModal();}
+function showDialog(title,body,actions=[],closeLabel='Cerrar'){$('dialog-title').textContent=title; $('dialog-body').replaceChildren(...body); $('dialog-actions').replaceChildren(...actions,button(closeLabel,()=> $('dialog').close())); if(!$('dialog').open)$('dialog').showModal();}
 async function dashboardCleanup(all=false,dry=false){
   const recentHours=all?null:Number($('recent-hours').value)||1;
   const p=await request('preview',{recentHours});
@@ -58,7 +58,10 @@ async function dashboardCleanup(all=false,dry=false){
   const actions=dry?[]:[button(all?'Limpiar todas las no protegidas':'Limpiar cookies recientes',async()=>{
     $('dialog').close();const r=await request('clean',{token:p.token,host:null,recentHours});await refresh();$('notice').textContent=`Eliminadas: ${r.deleted} · Omitidas: ${r.skipped} · Fallidas: ${r.failed}${r.incomplete?' · Parcial':''}`;
   },'danger')];
-  showDialog(dry?'Dry run · limpieza reciente':all?'Limpieza completa':'Confirmar limpieza reciente',body,actions,dry?'Cerrar':'Cancelar');
+  const title=dry?'Dry run · limpieza reciente':all?'Limpieza completa':'Confirmar limpieza reciente';
+  const summary=()=>showDialog(title,body,actions,dry?'Cerrar':'Cancelar');
+  const detail=button('Ver cookies que se eliminarán',()=>showDialog('Cookies de esta preview',[createPreviewDetails(p.candidates)],[button('Volver al resumen',summary,'secondary')]),'preview-details-link');
+  body.push(detail);summary();
 }
 
 async function details(host){

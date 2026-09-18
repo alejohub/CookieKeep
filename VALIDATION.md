@@ -193,3 +193,20 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Archive: releases/CookieKeep-v1.1.7-chromium.zip, 39785 bytes; SHA-256 8533D01D3322B0E4A4CE6E00B0619216A0B5D9E32669892E77D1945E45B5156C.
 - Runtime ZIP listing excludes repository metadata, tests, dependencies, environment/key files, logs and temporary or personal data. Credential/private-path indicator scan produced no matches; tests and browser checks use synthetic data.
 - Normal commit and non-forced push to main authorized; normal public release targets that commit without overwriting an existing tag/release.
+
+## Pending preview-details and typography UX — version remains 1.1.7
+
+- 181 total tests, 181 passed, zero failed. All three modal flows cover exact link, snapshot-only metadata, no additional request, no values, return to original summary and same confirmation token/range. Worker tests assert exact recent/global candidate names, absence of value and protection added after preview.
+- Shared typography assertions cover title/section/body/secondary variables and removal of 11–12px secondary text.
+- Real disposable-profile Edge smoke passed dry-run detail/return, recent detail/return/confirmation and existing responsive, header, synchronization, progress/cancellation and safety flows.
+- Build passed: 49 validated files, 27 runtime archive entries, root manifest 1.1.7 and all archive/source hashes matching.
+- Published ZIP 1.1.7 restored intact after validating the source build; no version bump, commit, push or release requested for this UX task.
+
+## CookieKeep 1.1.8 — release delivery
+
+- Manifest/package and current README updated to 1.1.8; popup/dashboard version remains runtime-derived.
+- Full suite: 181 total, 181 passed, zero failed. Build passed: 49 validated files, 27 matching runtime entries, manifest.json at root with version 1.1.8.
+- Archive: releases/CookieKeep-v1.1.8-chromium.zip, 40259 bytes; SHA-256 134F5C5DB3D08958D31FB3694D2818554685800744DDBA20125891486D32F842. Runtime listing excludes tests, dependencies, repository metadata, environment files, logs and temporary files. Secret/private-path indicator scan produced no matches.
+- Browser harness now explicitly waits for the asynchronous site-cookie list before asserting its row count.
+- Prior published archives retained unchanged. Normal commit, non-forced main push and normal release requested by the user.
+- Final disposable-profile Edge validation passed on 1.1.8, including preview detail/return, recent confirmation, existing responsive layouts and previous safety/synchronization checks.

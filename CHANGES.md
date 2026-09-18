@@ -148,3 +148,9 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Added safe new-tab GitHub repository links next to runtime-manifest version metadata in both headers.
 - Shared muted metadata styling includes hover feedback and visible keyboard focus. Popup retains the explicit two-line tagline and hides the unsupported-page badge.
 - No new permissions, CSP relaxation, automatic network requests or version change.
+
+## 1.1.8 — preview details and readable typography
+
+- Three dashboard cleanup dialogs link to an informative candidate snapshot from the same preview response, without another inventory or token. Returning restores the original summary/context and confirmation.
+- Cookie metadata detail reuses the safe-field formatter and excludes values; current whitelist and authorization checks remain unchanged.
+- Shared typography variables unify secondary text at 13px and body text at 14px, retaining existing title hierarchy and responsive layout.

@@ -95,7 +95,7 @@ async function handle(message) {
     const token=crypto.randomUUID(); previews.set(token,{host,recentHours:hours,at:Date.now(),authorized:new Set(plan.remove.map(identity))});
     for (const [key,p] of previews) if (Date.now()-p.at>600000) previews.delete(key);
     while(previews.size>32)previews.delete(previews.keys().next().value);
-    return {token,...plan.summary,rows:plan.rows,recentHours:hours,protectedCookies:cookies.filter(c=>isProtected(c,state.whitelist)).length,temporalExcluded:recent?cookies.length-recent.size:0};
+    return {token,...plan.summary,rows:plan.rows,candidates:plan.remove.map(metadata),recentHours:hours,protectedCookies:cookies.filter(c=>isProtected(c,state.whitelist)).length,temporalExcluded:recent?cookies.length-recent.size:0};
   }
   if(message.type==='clean'){
     const preview=previews.get(message.token);

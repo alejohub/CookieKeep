@@ -39,3 +39,12 @@ export function createCookieList(host,onChange=async()=>{},isBusy=()=>false){
   async function load(){cookies=await request('details',{host});render();}
   return {element,load};
 }
+
+// Informative snapshot only: never fetch current cookies or offer deletion here.
+export function createPreviewDetails(candidates=[]){
+ const element=node('section',undefined,'preview-cookie-list');
+ element.append(node('p',candidates.length+' cookies de esta preview · Valores ocultos. La protección se vuelve a comprobar antes de borrar.'));
+ if(!candidates.length)element.append(node('p','Esta preview no tiene cookies eliminables.'));
+ for(const cookie of candidates){const row=node('section',undefined,'cookie-row');row.append(node('h3',cookie.domain+' · '+(cookie.name||'(nombre vacío)')),node('p',(cookie.session?'Sesión':'Persistente')+' · '+bytes(cookie.approximateBytes)),node('pre',JSON.stringify(cookieDetails(cookie),null,2),'cookie-detail'));element.append(row);}
+ return element;
+}
