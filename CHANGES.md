@@ -166,3 +166,9 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Reverted the broad 1.1.9 typography/control sizing change to the exact preceding scale and proportions.
 - Increased only domain, cookie count, approximate size and visits row cells to 15px via `table-data-cell`; headers, status badges and action buttons remain unchanged.
 - Existing cleanup preview details and all behavior remain intact. Version and published release stay 1.1.9.
+
+## 1.1.10 — corrected table typography release
+
+- Publishes the targeted 15px primary table-row data adjustment while preserving the pre-1.1.9 global typography and control proportions.
+- Domain, cookie count, approximate size and visit data are more legible; column headers, status badges, actions and all other UI remain unchanged.
+- No functional or permission changes.

@@ -224,3 +224,9 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - 181 total tests, 181 passed, zero failed. Disposable-profile Edge smoke passed, measuring 15px on all primary row-data cells and confirming Status/Actions remain below 15px, with narrow layout free of unexpected overflow.
 - Build passed: 49 validated files, 27 matching runtime entries, root manifest 1.1.9 and all archive/source hashes matching. The generated archive was used for build verification, then the published/versioned 1.1.9 ZIP was restored unchanged.
 - Broad body/control/secondary/meta/min-height/padding and responsive rules from the preceding typography adjustment were reverted; no functionality or permissions changed.
+
+## CookieKeep 1.1.10 — corrected typography release
+
+- Manifest/package and current README updated to 1.1.10; runtime version labels remain manifest-derived.
+- 181 total tests, 181 passed, zero failed. Disposable-profile Edge smoke passed with targeted 15px row data, unchanged Status/Actions sizing and prior safety/functionality checks.
+- Build passed: 49 validated files, 27 matching runtime entries, root manifest 1.1.10. Archive: 40342 bytes; SHA-256 19AABBF70962B578418A91BC432CCC64A81DF0BE2984773997866A89857B808A.
