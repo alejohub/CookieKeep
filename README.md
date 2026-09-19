@@ -6,7 +6,7 @@ CookieKeep is a Chrome and Edge extension that lets users protect the cookies th
 
 ## Project status and license
 
-Version **1.1.8** adds exact preview candidate details to cleanup dialogs and consolidates readable typography. Recent cleanup, independent dashboard cards, dynamic version metadata and explicit GitHub links remain available. Earlier cleanup-policy, progress, cancellation, optional history and CSP safeguards remain in place. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.8-chromium.zip`.
+Version **1.1.9** adds exact preview candidate details to cleanup dialogs and consolidates readable typography. Recent cleanup, independent dashboard cards, dynamic version metadata and explicit GitHub links remain available. Earlier cleanup-policy, progress, cancellation, optional history and CSP safeguards remain in place. Source and Chromium ZIPs are tracked together. The published 1.1.1 archive is retained unchanged; the current archive is `releases/CookieKeep-v1.1.9-chromium.zip`.
 
 All 181 Node tests pass in the current working source. A real extension smoke test also passed in headless Edge using a new disposable profile and synthetic cookies. Manual acceptance in interactive Chrome/Edge, detailed SameSite behavior, forced worker termination and optional-permission prompts are covered by the reproducible guide in `BROWSER_VALIDATION.md`, not claimed as fully verified.
 
@@ -14,7 +14,7 @@ No LICENSE file is currently present.
 
 ## Install
 
-Download and extract `releases/CookieKeep-v1.1.8-chromium.zip`. The manifest is at the archive root.
+Download and extract `releases/CookieKeep-v1.1.9-chromium.zip`. The manifest is at the archive root.
 
 **Chrome:** open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder containing `manifest.json`.
 
@@ -130,4 +130,4 @@ Recent eligibility means a creation/update event observed by CookieKeep, not a C
 
 The current working source adds **Ver cookies que se eliminarán** to recent dry-run, selected-range cleanup and global cleanup dialogs. It opens an informative snapshot inside the same modal, using the exact candidates returned by that preview rather than querying again. **Volver al resumen** restores the original confirmation, interval and token. Metadata includes domain, name, path, session/persistent status, approximate bytes, store and CHIPS partition details; cookie values are excluded. Current protection and preview authorization are still revalidated when cleanup is confirmed.
 
-Shared typography uses a 28px title, 18px section heading, 14px body and 13px secondary scale. Existing popup title, brand and numeric metric sizes retain their established hierarchy. Version/link metadata, labels, hints, table headers and cookie details no longer use 11–12px text. The 1.1.8 release includes these UX improvements; previous release archives remain unchanged.
+Shared typography uses a 28px title, 18px section heading, 15px body/control, 14px secondary and 13px metadata scale. Existing popup title, brand and numeric metric sizes retain their established hierarchy. Version/link metadata, labels, hints, table headers and cookie details no longer use 11–12px text. The 1.1.9 release includes these UX improvements; previous release archives remain unchanged.

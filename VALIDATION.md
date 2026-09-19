@@ -210,3 +210,11 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Browser harness now explicitly waits for the asynchronous site-cookie list before asserting its row count.
 - Prior published archives retained unchanged. Normal commit, non-forced main push and normal release requested by the user.
 - Final disposable-profile Edge validation passed on 1.1.8, including preview detail/return, recent confirmation, existing responsive layouts and previous safety/synchronization checks.
+
+## CookieKeep 1.1.9 — functional typography release
+
+- Full suite: 181 total, 181 passed, zero failed.
+- Disposable-profile Edge smoke passed on 1.1.9: explicitly measured 15px controls, 13px matching popup/dashboard metadata, minimum control heights, popup width 360 and narrow dashboard width 400 without horizontal overflow; all prior functional/safety checks passed.
+- Chromium revealed that shorthand font inheritance rendered a control at 11.25px; explicit shared font-family/font-size fixed the actual browser result. A hidden history-period selector was made visible before measurement.
+- Build passed: 49 validated files, 27 matching runtime entries and root manifest 1.1.9. Archive: 40403 bytes; SHA-256 D96908486AEFBA3EBE53CB884FB69032E68CC630A37632D4CDC260C5A0B576BF.
+- Credential/private-path indicator scan returned no matches; no permissions or runtime logic changed.

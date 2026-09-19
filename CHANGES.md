@@ -154,3 +154,9 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Three dashboard cleanup dialogs link to an informative candidate snapshot from the same preview response, without another inventory or token. Returning restores the original summary/context and confirmation.
 - Cookie metadata detail reuses the safe-field formatter and excludes values; current whitelist and authorization checks remain unchanged.
 - Shared typography variables unify secondary text at 13px and body text at 14px, retaining existing title hierarchy and responsive layout.
+
+## 1.1.9 — readable functional typography
+
+- Increased functional controls and body text to 15px, secondary/help/table text to 14px, and retained 13px only for discreet version/GitHub metadata.
+- Replaced Chromium-sensitive `font: inherit` on controls with explicit shared family and size, and set proportionate minimum heights/padding.
+- Preserved existing title, section-heading, brand and large-metric sizes. Responsive wrapping prevents popup/dashboard overflow. No behavior or permissions changed.
