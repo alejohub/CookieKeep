@@ -93,7 +93,7 @@ function renderRows() {
   $('page-prev').disabled = page === 1;
   $('page-next').disabled = page === pages;
   for (const row of visible) {
-    const explicit = snapshot.state.whitelist.includes(row.domain), tr = node('tr'), domain = node('td');
+    const explicit = snapshot.state.whitelist.includes(row.domain), tr = node('tr'), domain = node('td',undefined,'table-data-cell');
     domain.append(button(row.domain, () => details(row.domain), 'link'));
     const status = node('td');
     status.append(node('span', explicit ? 'Protegido' : row.protectedCookies ? `${row.protectedCookies} cookies conservadas` : 'No protegido', `status${protectedRow(row) ? ' good' : ''}`));
@@ -102,10 +102,10 @@ function renderRows() {
     const remove = button('Borrar', () => clean(row.domain, refresh), 'danger');
     remove.disabled = explicit || !row.count || snapshot.running;
     wrap.append(remove); actions.append(wrap);
-    tr.append(domain, node('td', String(row.count)), node('td', bytes(row.bytes)));
+    tr.append(domain, node('td', String(row.count),'table-data-cell'), node('td', bytes(row.bytes),'table-data-cell'));
     if (sort === 'visits') {
       const partial = ranking.phase === 'ready' && (ranking.result.truncated || ranking.result.missingTimes);
-      tr.append(node('td', ranking.phase === 'ready' ? `${partial ? '≥ ' : ''}${row.visits} visitas` : '—'));
+      tr.append(node('td', ranking.phase === 'ready' ? `${partial ? '≥ ' : ''}${row.visits} visitas` : '—','table-data-cell'));
     }
     tr.append(status, actions); $('rows').append(tr);
   }

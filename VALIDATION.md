@@ -218,3 +218,9 @@ No marcar los 16 criterios de aceptación como verificados en navegadores reales
 - Chromium revealed that shorthand font inheritance rendered a control at 11.25px; explicit shared font-family/font-size fixed the actual browser result. A hidden history-period selector was made visible before measurement.
 - Build passed: 49 validated files, 27 matching runtime entries and root manifest 1.1.9. Archive: 40403 bytes; SHA-256 D96908486AEFBA3EBE53CB884FB69032E68CC630A37632D4CDC260C5A0B576BF.
 - Credential/private-path indicator scan returned no matches; no permissions or runtime logic changed.
+
+## CookieKeep 1.1.9 — targeted typography correction
+
+- 181 total tests, 181 passed, zero failed. Disposable-profile Edge smoke passed, measuring 15px on all primary row-data cells and confirming Status/Actions remain below 15px, with narrow layout free of unexpected overflow.
+- Build passed: 49 validated files, 27 matching runtime entries, root manifest 1.1.9 and all archive/source hashes matching. The generated archive was used for build verification, then the published/versioned 1.1.9 ZIP was restored unchanged.
+- Broad body/control/secondary/meta/min-height/padding and responsive rules from the preceding typography adjustment were reverted; no functionality or permissions changed.

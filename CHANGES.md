@@ -160,3 +160,9 @@ Cambios sobre la versión 1.0.0 recuperada del ZIP existente; se conserva su arq
 - Increased functional controls and body text to 15px, secondary/help/table text to 14px, and retained 13px only for discreet version/GitHub metadata.
 - Replaced Chromium-sensitive `font: inherit` on controls with explicit shared family and size, and set proportionate minimum heights/padding.
 - Preserved existing title, section-heading, brand and large-metric sizes. Responsive wrapping prevents popup/dashboard overflow. No behavior or permissions changed.
+
+## 1.1.9 — targeted table typography correction
+
+- Reverted the broad 1.1.9 typography/control sizing change to the exact preceding scale and proportions.
+- Increased only domain, cookie count, approximate size and visits row cells to 15px via `table-data-cell`; headers, status badges and action buttons remain unchanged.
+- Existing cleanup preview details and all behavior remain intact. Version and published release stay 1.1.9.
